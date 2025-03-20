@@ -1,0 +1,27 @@
+{
+  "name": "azure-ai-agents",
+  "version": "1.0.0",
+  "description": "Azure AI Agents QuickStart demo",
+  "license": "ISC",
+  "author": "Dan Wahlin",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node dist/index.js",
+    "build": "tsc",
+    "dev": "tsc && concurrently \"tsc --watch\" \"nodemon dist/index.js\""
+  },
+  "dependencies": {
+    "@azure/ai-projects": "^1.0.0-beta.2",
+    "@azure/identity": "^4.8.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "tsc": "^2.0.4",
+    "typescript": "^5.8.2"
+  }
+}
