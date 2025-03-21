@@ -9,7 +9,8 @@
   "scripts": {
     "start": "tsc && node dist/index.js",
     "build": "tsc",
-    "dev": "tsc && concurrently \"tsc --watch\" \"nodemon dist/index.js\""
+    "js": "node src/index.js",
+    "ts": "tsc && concurrently \"tsc --watch\" \"nodemon dist/index.js\""
   },
   "dependencies": {
     "@azure/ai-projects": "^1.0.0-beta.2",

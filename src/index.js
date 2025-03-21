@@ -1,15 +1,6 @@
-// index.js
-
-import {
-    AIProjectsClient,
-    DoneEvent,
-    ErrorEvent,
-    isOutputOfType,
-    MessageStreamEvent,
-    RunStreamEvent,
-    ToolUtility,
-} from "@azure/ai-projects";
-import { DefaultAzureCredential } from "@azure/identity";
+import {  AIProjectsClient, DoneEvent, ErrorEvent, isOutputOfType, MessageStreamEvent, 
+    RunStreamEvent, ToolUtility } from '@azure/ai-projects';
+import { DefaultAzureCredential } from '@azure/identity';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -19,12 +10,12 @@ const connectionString = process.env.AZURE_AI_PROJECTS_CONNECTION_STRING;
 
 // Throw an error if the connection string is not set
 if (!connectionString) {
-    throw new Error("Please set the AZURE_AI_PROJECTS_CONNECTION_STRING environment variable.");
+    throw new Error('Please set the AZURE_AI_PROJECTS_CONNECTION_STRING environment variable.');
 }
 
 export async function main() {
     const client = AIProjectsClient.fromConnectionString(
-        connectionString || "",
+        connectionString || '',
         new DefaultAzureCredential(),
     );
 
@@ -32,11 +23,11 @@ export async function main() {
     const codeInterpreterTool = ToolUtility.createCodeInterpreterTool([]);
 
     // Step 2: Create an agent
-    const agent = await client.agents.createAgent("gpt-4o-mini", {
-        name: "my-agent",
-        instructions: "You are a helpful agent",
-        // tools: [codeInterpreterTool.definition],
-        // toolResources: codeInterpreterTool.resources,
+    const agent = await client.agents.createAgent('gpt-4o-mini', {
+        name: 'my-agent',
+        instructions: 'You are a helpful agent',
+        tools: [codeInterpreterTool.definition],
+        toolResources: codeInterpreterTool.resources,
     });
 
     // Step 3 a thread
@@ -45,8 +36,8 @@ export async function main() {
     // Step 4 a message to thread
     await client.agents.createMessage(
         thread.id, {
-        role: "user",
-        content: "I need to solve the equation `3x + 11 = 14`. Can you help me?",
+        role: 'user',
+        content: 'I need to solve the equation `3x + 11 = 14`. Can you help me?',
     });
 
     // Intermission is now correlated with thread
@@ -63,9 +54,9 @@ export async function main() {
                 {
                     const messageDelta = eventMessage.data;
                     messageDelta.delta.content.forEach((contentPart) => {
-                        if (contentPart.type === "text") {
+                        if (contentPart.type === 'text') {
                             const textContent = contentPart;
-                            const textValue = textContent.text?.value || "No text";
+                            const textValue = textContent.text?.value || 'No text';
                         }
                     });
                 }
@@ -88,7 +79,7 @@ export async function main() {
     // messages[0] is the most recent
     for (let i = messages.data.length - 1; i >= 0; i--) {
         const m = messages.data[i];
-        if (m.content && m.content.length > 0 && isOutputOfType(m.content[0], "text")) {
+        if (m.content && m.content.length > 0 && isOutputOfType(m.content[0], 'text')) {
             const textContent = m.content[0];
             console.log(`${textContent.text.value}`);
             console.log(`---------------------------------`);
@@ -100,5 +91,5 @@ export async function main() {
 }
 
 main().catch((err) => {
-    console.error("The sample encountered an error:", err);
+    console.error('The sample encountered an error:', err);
 });

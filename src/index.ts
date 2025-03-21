@@ -1,26 +1,25 @@
-import type { MessageDeltaChunk, MessageDeltaTextContent, MessageTextContentOutput } from "@azure/ai-projects";
-import { AIProjectsClient, DoneEvent, ErrorEvent, isOutputOfType, MessageStreamEvent, RunStreamEvent, ToolUtility } from "@azure/ai-projects";
-import { DefaultAzureCredential } from "@azure/identity";
+import type { MessageDeltaChunk, MessageDeltaTextContent, MessageTextContentOutput } from '@azure/ai-projects';
+import { AIProjectsClient, DoneEvent, ErrorEvent, isOutputOfType, MessageStreamEvent, RunStreamEvent, ToolUtility } from '@azure/ai-projects';
+import { DefaultAzureCredential } from '@azure/identity';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const connectionString = process.env["AZURE_AI_PROJECTS_CONNECTION_STRING"] as string;
+const connectionString = process.env['AZURE_AI_PROJECTS_CONNECTION_STRING'] as string;
 
 if (!connectionString) {
-    throw new Error("AZURE_AI_PROJECTS_CONNECTION_STRING must be set in the environment variables");
+    throw new Error('AZURE_AI_PROJECTS_CONNECTION_STRING must be set in the environment variables');
 }
 
 async function main() {
     const client = AIProjectsClient.fromConnectionString(connectionString, new DefaultAzureCredential());
-    console.log(connectionString); 
 
     // Step 1 code interpreter tool
     const codeInterpreterTool = ToolUtility.createCodeInterpreterTool([]);
 
     // Step 2: Create an agent
-    const agent = await client.agents.createAgent("gpt-4o-mini", {
-        name: "my-agent",
-        instructions: "You are a helpful agent",
+    const agent = await client.agents.createAgent('gpt-4o-mini', { 
+        name: 'my-agent',
+        instructions: 'You are a helpful agent',
         tools: [codeInterpreterTool.definition],
         toolResources: codeInterpreterTool.resources
     });
@@ -31,8 +30,8 @@ async function main() {
     // Step 4: Add a message to thread
     await client.agents.createMessage(
         thread.id, {
-        role: "user",
-        content: "I need to solve the equation `3x + 11 = 14`. Can you help me?",
+        role: 'user',
+        content: 'I need to solve the equation `3x + 11 = 14`. Can you help me?',
     });
 
     // Intermission: message is now correlated with thread
@@ -49,9 +48,9 @@ async function main() {
                 {
                     const messageDelta = eventMessage.data as MessageDeltaChunk;
                     messageDelta.delta.content.forEach((contentPart) => {
-                        if (contentPart.type === "text") {
+                        if (contentPart.type === 'text') {
                             const textContent = contentPart as MessageDeltaTextContent;
-                            const textValue = textContent.text?.value || "No text";
+                            const textValue = textContent.text?.value || 'No text';
                         }
                     });
                 }
@@ -74,7 +73,7 @@ async function main() {
     // messages[0] is the most recent
     for (let i = messages.data.length - 1; i >= 0; i--) {
         const m = messages.data[i];
-        if (isOutputOfType<MessageTextContentOutput>(m.content[0], "text")) {
+        if (isOutputOfType<MessageTextContentOutput>(m.content[0], 'text')) {
             const textContent = m.content[0] as MessageTextContentOutput;
             console.log(`${textContent.text.value}`);
             console.log(`---------------------------------`);
@@ -86,5 +85,5 @@ async function main() {
 }
 
 main().catch((err) => {
-    console.error("The sample encountered an error:", err);
+    console.error('The sample encountered an error:', err);
 });
