@@ -4,10 +4,10 @@ import { DefaultAzureCredential } from '@azure/identity';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const connectionString = process.env['AZURE_AI_PROJECTS_CONNECTION_STRING'] as string;
+const connectionString = process.env['AI_FOUNDRY_PROJECT_CONNECTION_STRING'] as string;
 
 if (!connectionString) {
-    throw new Error('AZURE_AI_PROJECTS_CONNECTION_STRING must be set in the environment variables');
+    throw new Error('AI_FOUNDRY_PROJECT_CONNECTION_STRING must be set in the environment variables');
 }
 
 async function main() {

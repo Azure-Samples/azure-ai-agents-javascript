@@ -6,11 +6,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Set the connection string from the environment variable
-const connectionString = process.env.AZURE_AI_PROJECTS_CONNECTION_STRING;
+const connectionString = process.env.AI_FOUNDRY_PROJECT_CONNECTION_STRING;
 
 // Throw an error if the connection string is not set
 if (!connectionString) {
-    throw new Error('Please set the AZURE_AI_PROJECTS_CONNECTION_STRING environment variable.');
+    throw new Error('Please set the AI_FOUNDRY_PROJECT_CONNECTION_STRING environment variable.');
 }
 
 export async function main() {
