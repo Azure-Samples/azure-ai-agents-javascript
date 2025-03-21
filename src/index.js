@@ -29,14 +29,14 @@ export async function main() {
     );
 
     // Step 1 code interpreter tool
-    const codeInterpreterTool = ToolUtility.createCodeInterpreterTool();
+    const codeInterpreterTool = ToolUtility.createCodeInterpreterTool([]);
 
-    // Step 2 an agent
+    // Step 2: Create an agent
     const agent = await client.agents.createAgent("gpt-4o-mini", {
         name: "my-agent",
         instructions: "You are a helpful agent",
-        tools: [codeInterpreterTool.definition],
-        toolResources: codeInterpreterTool.resources,
+        // tools: [codeInterpreterTool.definition],
+        // toolResources: codeInterpreterTool.resources,
     });
 
     // Step 3 a thread

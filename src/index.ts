@@ -12,21 +12,17 @@ if (!connectionString) {
 
 async function main() {
     const client = AIProjectsClient.fromConnectionString(connectionString, new DefaultAzureCredential());
-    console.log(connectionString);
+    console.log(connectionString); 
 
-    // Step 1: Create code interpreter tool
-    const codeInterpreterTool = ToolUtility.createCodeInterpreterTool();
+    // Step 1 code interpreter tool
+    const codeInterpreterTool = ToolUtility.createCodeInterpreterTool([]);
 
     // Step 2: Create an agent
     const agent = await client.agents.createAgent("gpt-4o-mini", {
         name: "my-agent",
         instructions: "You are a helpful agent",
         tools: [codeInterpreterTool.definition],
-        toolResources: {
-            codeInterpreter: {
-                fileIds: []
-            }
-        },
+        toolResources: codeInterpreterTool.resources
     });
 
     // Step 3: Create a thread
@@ -51,7 +47,6 @@ async function main() {
                 break;
             case MessageStreamEvent.ThreadMessageDelta:
                 {
-                    console.log(`Message delta received. Data ${eventMessage.data}`);
                     const messageDelta = eventMessage.data as MessageDeltaChunk;
                     messageDelta.delta.content.forEach((contentPart) => {
                         if (contentPart.type === "text") {

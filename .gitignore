@@ -8,6 +8,7 @@ sandboxes.ts
 .vs
 .env
 credential.yaml
+connections.yaml
 
 # Ignore any Webpack generated files
 dist
