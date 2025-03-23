@@ -1,69 +1,216 @@
 import fs from 'fs';
 import { AIProjectsClient, DoneEvent, ErrorEvent, isOutputOfType, MessageStreamEvent, RunStreamEvent, ToolUtility } from '@azure/ai-projects';
-import type { AgentOutput, AgentThreadOutput, MessageDeltaChunk, MessageDeltaTextContent, MessageTextContentOutput, ThreadRunOutput } from '@azure/ai-projects';
+import type { AgentOutput, AgentThreadOutput, MessageDeltaChunk, MessageDeltaTextContent, MessageImageFileContentOutput, MessageTextContentOutput, OpenAIPageableListOfThreadMessageOutput, ThreadRunOutput } from '@azure/ai-projects';
 import { DefaultAzureCredential } from '@azure/identity';
 import readline from 'readline';
 import { config } from 'dotenv';
 import { PromptConfig } from './types';
 config();
 
-const {
-    aiFoundryConnectionString = process.env.AI_FOUNDRY_PROJECT_CONNECTION_STRING as string,
-    aiSearchConnectionString = process.env.AI_SEARCH_CONNECTION_STRING as string,
-    model = process.env.AI_MODEL as string
-} = process.env as Record<string, string>;
+// Environment variables with proper validation
+const aiFoundryConnectionString = process.env.AI_FOUNDRY_PROJECT_CONNECTION_STRING || '';
+const aiSearchConnectionString = process.env.AI_SEARCH_CONNECTION_STRING || '';
+const model = process.env.AI_MODEL || '';
 
-// Throw an error if the connection string is not set
-if (!aiFoundryConnectionString && !aiSearchConnectionString) {
-    throw new Error('Please set the AI_FOUNDRY_PROJECT_CONNECTION_STRING and AI_SEARCH_CONNECTION_STRING environment variable.');
+if (!aiFoundryConnectionString) {
+    throw new Error('Please set the AI_FOUNDRY_PROJECT_CONNECTION_STRING environment variable.');
 }
 
+if (!aiSearchConnectionString) {
+    throw new Error('Please set the AI_SEARCH_CONNECTION_STRING environment variable.');
+}
+
+if (!model) {
+    throw new Error('Please set the AI_MODEL environment variable.');
+}
+
+// Define prompt configurations
+const promptConfig: Record<string, PromptConfig> = {
+    solveEquation: {
+        prompt: 'I need to solve the equation `3x + 11 = 14`. Can you help me?',
+        emoji: '🧮'
+    },
+    codeGenerator: {
+        prompt: 'Write a function that finds prime numbers',
+        tool: 'code-interpreter',
+        emoji: '💻'
+    },
+    dataVisualization: {
+        prompt: `Create visualizations from the car_sales.csv data. Include charts for:
+            - Sales by Region 
+            - Relationships between Price, Mileage, and Year. 
+            - Sales by SalesPerson.
+            - Sales by Make, Model, and Year for 2023.`,
+        tool: 'code-interpreter',
+        filePath: './files/car_sales_data.csv',
+        emoji: '📊'
+    },
+    hotelReviews: {
+        prompt: 'Tell me about the hotel reviews in the HotelReviews_data.csv.',
+        tool: 'code-interpreter',
+        fileId: '',
+        filePath: './files/hotel_reviews_data.csv',
+        emoji: '🏨'
+    },
+    insuranceCoverage: {
+        prompt: 'What are my health insurance plan coverage types?',
+        tool: 'ai-search',
+        emoji: '🏥'
+    }
+};
+
+/**
+ * Main application function
+ */
 async function main() {
-    const client = AIProjectsClient.fromConnectionString(aiFoundryConnectionString, new DefaultAzureCredential());
+    try {
+        const client = AIProjectsClient.fromConnectionString(
+            aiFoundryConnectionString,
+            new DefaultAzureCredential()
+        );
 
-    // #### Step 1. Define prompts and tools
-    const promptConfig: Record<string, PromptConfig> = {
-        solveEquation: {
-            prompt: 'I need to solve the equation `3x + 11 = 14`. Can you help me?'
-        },
-        hotelReviews: {
-            prompt: 'Tell me about the hotel reviews in the HotelReviews_data.csv.',
-            fileId: '',
-            filePath: './files/HotelReviews_data.csv'
-        },
-        insuranceCoverage: {
-            prompt: 'What are my health insurance plan coverage types?',
-            aiSearch: true
+        let continueLoop = true;
+
+        while (continueLoop) {
+            displayAvailablePrompts();
+    
+            const selectedIndex = await getPromptSelection();
+            const promptKeys = Object.keys(promptConfig);
+    
+            // Check if user wants to exit
+            if (selectedIndex === promptKeys.length) {
+                console.log('Exiting application.');
+                continueLoop = false;
+                continue;
+            }
+    
+            // Validate selection
+            if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= promptKeys.length) {
+                console.error('Invalid selection. Please enter a number between 1 and ' + (promptKeys.length + 1));
+                continue;
+            }
+    
+            await processSelectedPrompt(client, promptKeys[selectedIndex]);
         }
-    };
-    const selectedPromptConfig = promptConfig.insuranceCoverage;
-    console.log('Prompt:', selectedPromptConfig.prompt);
+    } catch (err) {
+        console.error('The application encountered an error:', err);
+        process.exit(1);
+    }
+}
 
-    // #### Step 2. Create agent tools if needed
-    await createTools(selectedPromptConfig, client);
-
-    const agent = await client.agents.createAgent(model, {
-        name: 'my-agent',
-        instructions: 'You are a helpful agent',
-        temperature: 0.5,
-        tools: selectedPromptConfig.tools,
-        toolResources: selectedPromptConfig.toolResources
+/**
+ * Displays all available prompts
+ */
+function displayAvailablePrompts() {
+    console.log('\nAvailable prompts:');
+    console.log('------------------');
+    const promptKeys = Object.keys(promptConfig);
+    promptKeys.forEach((key, index) => {
+        // Format key by splitting camelCase and converting to title case
+        const formattedKey = formatKeyToTitleCase(key);
+        const emoji = promptConfig[key].emoji || '📝'; // Default emoji if none is specified
+        console.log(`${index + 1}. ${emoji} ${formattedKey}: ${promptConfig[key].prompt}`);
     });
+    console.log(`${promptKeys.length + 1}. 👋 Exit`);
+}
 
-    // #### Step 3. a thread
-    const thread = await client.agents.createThread();
+/**
+ * Formats a camelCase key to Title Case with spaces
+ * e.g. "solveEquation" becomes "Solve Equation"
+ */
+function formatKeyToTitleCase(key: string): string {
+    // First, add spaces before capital letters and make the entire string lowercase
+    const withSpaces = key.replace(/([A-Z])/g, ' $1').trim().toLowerCase();
 
-    // #### Step 4. Add a user message to the thread
-    await client.agents.createMessage(thread.id, {
+    // Then capitalize the first letter of each word
+    return withSpaces
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+/**
+ * Gets user selection and returns the index
+ */
+async function getPromptSelection(): Promise<number> {
+    const selection = await promptUser('\nSelect a prompt by number: ');
+    return parseInt(selection) - 1;
+}
+
+/**
+ * Processes the selected prompt
+ */
+async function processSelectedPrompt(client: AIProjectsClient, selectedKey: string) {
+    const selectedPromptConfig = promptConfig[selectedKey];
+    const emoji = selectedPromptConfig.emoji || '📝';
+    console.log(`\nSelected: ${emoji} ${formatKeyToTitleCase(selectedKey)}`);
+    console.log('Prompt: ' + selectedPromptConfig.prompt);
+
+
+    try {
+        // Create tools if needed
+        await createTools(selectedPromptConfig, client);
+
+        // Create agent
+        const agent = await client.agents.createAgent(model, {
+            name: 'my-agent',
+            instructions: 'You are a helpful agent',
+            temperature: 0.5,
+            tools: selectedPromptConfig.tools,
+            toolResources: selectedPromptConfig.toolResources
+        });
+
+        // Create thread and process
+        const thread = await client.agents.createThread();
+        await addMessageToThread(client, thread.id, selectedPromptConfig.prompt);
+
+        // Run agent and get results
+        const runId = await runAgent(client, thread, agent);
+        await printThreadMessages(selectedPromptConfig, client, thread.id);
+        await getRunStats(runId, client, thread);
+
+        // Clean up resources
+        await dispose(selectedPromptConfig, client, agent);
+    } catch (error) {
+        console.error(`Error processing prompt "${selectedKey}":`, error);
+    }
+}
+
+/**
+ * Adds a message to the specified thread
+ */
+async function addMessageToThread(client: AIProjectsClient, threadId: string, message: string) {
+    await client.agents.createMessage(threadId, {
         role: 'user',
-        content: selectedPromptConfig.prompt,
+        content: message,
     });
+}
 
-    // #### Step 5. Run the agent
-    let runId = await runAgent(client, thread, agent);
+/**
+ * Creates the necessary tools based on the prompt configuration
+ */
+async function createTools(selectedPromptConfig: PromptConfig, client: AIProjectsClient) {
+    if (selectedPromptConfig.tool === 'code-interpreter') {
+        const { codeInterpreterTool, file } = await getCodeInterpreter(selectedPromptConfig, client);
+        if (file) {
+            selectedPromptConfig.fileId = file?.id;
+        }
+        selectedPromptConfig.tools = [codeInterpreterTool.definition];
+        selectedPromptConfig.toolResources = codeInterpreterTool.resources;
+    }
 
-    // #### Step 6. Print the messages from the agent
-    const messages = await client.agents.listMessages(thread.id);
+    if (selectedPromptConfig.aiSearch) {
+        const azureAISearchTool = await createAISearchTool(client);
+        selectedPromptConfig.tools = [azureAISearchTool.definition];
+        selectedPromptConfig.toolResources = azureAISearchTool.resources;
+    }
+}
+
+/**
+ * Prints all messages from a thread
+ */
+async function printThreadMessages(selectedPromptConfig: PromptConfig, client: AIProjectsClient, threadId: string) {
+    const messages = await client.agents.listMessages(threadId);
     console.log('\nMessages:\n----------------------------------------------');
 
     // Messages iterate from oldest to newest - messages[0] is the most recent
@@ -77,28 +224,48 @@ async function main() {
         }
     }
 
-    // #### Step 7. Write out stats and delete the agent once done
-    await getRunStats(runId, client, thread);
-
-    // #### Step 8. Clean up
-    await dispose(selectedPromptConfig, client, agent);
-}
-
-async function createTools(selectedPromptConfig: PromptConfig, client: AIProjectsClient) {
-    if (selectedPromptConfig.filePath) {
-        const { codeInterpreterTool, file } = await getCodeInterpreter(selectedPromptConfig, client);
-        selectedPromptConfig.fileId = file.id;
-        selectedPromptConfig.tools = [codeInterpreterTool.definition];
-        selectedPromptConfig.toolResources = codeInterpreterTool.resources;
-    }
-
-    if (selectedPromptConfig.aiSearch) {
-        let azureAISearchTool = await createAISearchTool(client);
-        selectedPromptConfig.tools = [azureAISearchTool.definition];
-        selectedPromptConfig.toolResources = azureAISearchTool.resources;
+    if (selectedPromptConfig.tool === 'code-interpreter' && selectedPromptConfig.filePath) {
+        await getImages(client, messages);
     }
 }
 
+async function getImages(client: AIProjectsClient, messages: OpenAIPageableListOfThreadMessageOutput) {
+    console.log('Looking for image files...');
+    const fileIds: string[] = [];
+    for (const data of messages.data) {
+        for (const content of data.content) {
+            const imageFile = (content as MessageImageFileContentOutput).imageFile;
+            if (imageFile) {
+                fileIds.push(imageFile.fileId);
+                const imageFileName = (await client.agents.getFile(imageFile.fileId)).filename;
+
+                const fileContent = await (await client.agents.getFileContent(imageFile.fileId).asNodeStream()).body;
+                if (fileContent) {
+                    const chunks: Buffer[] = [];
+                    for await (const chunk of fileContent) {
+                        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+                    }
+                    const buffer = Buffer.concat(chunks);
+                    fs.writeFileSync(`./downloads/${imageFileName}`, buffer);
+                }
+                else {
+                    console.error("Failed to retrieve file content: fileContent is undefined");
+                }
+                console.log(`Saved image file to: ${imageFileName}`);
+            }
+        }
+    }
+
+    //Delete remote files
+    for (const fileId of fileIds) {
+        console.log(`Deleting remote image file with ID: ${fileId}`);
+        await client.agents.deleteFile(fileId);
+    }
+}
+
+/**
+ * Cleans up resources created during the prompt execution
+ */
 async function dispose(selectedPromptConfig: PromptConfig, client: AIProjectsClient, agent: AgentOutput) {
     if (selectedPromptConfig.fileId) {
         console.log(`\nDeleting file with ID: ${selectedPromptConfig.fileId}`);
@@ -108,6 +275,9 @@ async function dispose(selectedPromptConfig: PromptConfig, client: AIProjectsCli
     await client.agents.deleteAgent(agent.id);
 }
 
+/**
+ * Gets run statistics
+ */
 async function getRunStats(runId: string, client: AIProjectsClient, thread: AgentThreadOutput) {
     if (runId) {
         const completedRun = await client.agents.getRun(thread.id, runId);
@@ -115,7 +285,10 @@ async function getRunStats(runId: string, client: AIProjectsClient, thread: Agen
     }
 }
 
-async function runAgent(client: AIProjectsClient, thread: AgentThreadOutput, agent: AgentOutput) {
+/**
+ * Runs the agent and processes the stream of events
+ */
+async function runAgent(client: AIProjectsClient, thread: AgentThreadOutput, agent: AgentOutput): Promise<string> {
     const run = client.agents.createRun(thread.id, agent.id);
     const streamEventMessages = await run.stream();
     let runId = '';
@@ -129,11 +302,14 @@ async function runAgent(client: AIProjectsClient, thread: AgentThreadOutput, age
             case MessageStreamEvent.ThreadMessageDelta:
                 {
                     const messageDelta = eventMessage.data as MessageDeltaChunk;
-                    messageDelta.delta.content.forEach((contentPart) => {
+                    messageDelta.delta.content.forEach(async (contentPart) => {
                         if (contentPart.type === 'text') {
                             const textContent = contentPart as MessageDeltaTextContent;
-                            const textValue = textContent.text?.value || 'No text';
+                            const textValue = textContent.text?.value || '';
                             process.stdout.write(textValue);
+                        }
+                        if (contentPart.type === 'image_file') {
+                            process.stdout.write(`\nReceived image file\n`);
                         }
                     });
                 }
@@ -148,6 +324,7 @@ async function runAgent(client: AIProjectsClient, thread: AgentThreadOutput, age
                 break;
 
             case DoneEvent.Done:
+                // Nothing to do here
                 break;
         }
     }
@@ -155,23 +332,39 @@ async function runAgent(client: AIProjectsClient, thread: AgentThreadOutput, age
     return runId;
 }
 
-async function getCodeInterpreter(selectedPromptConfig: PromptConfig, client: AIProjectsClient): Promise<{ codeInterpreterTool: any, file: any }> {
-    const fileStream = fs.createReadStream(selectedPromptConfig.filePath as string);
-    const file = await client.agents.uploadFile(fileStream, 'assistants', { fileName: selectedPromptConfig.filePath });
-    console.log(`Uploaded local file, file ID : ${file.id}`);
-    const codeInterpreterTool = ToolUtility.createCodeInterpreterTool([file.id]);
-    return { codeInterpreterTool, file };
+/**
+ * Creates a code interpreter tool
+ */
+async function getCodeInterpreter(selectedPromptConfig: PromptConfig, client: AIProjectsClient) {
+    if (selectedPromptConfig.filePath) {
+        const fileStream = fs.createReadStream(selectedPromptConfig.filePath);
+        const file = await client.agents.uploadFile(fileStream, 'assistants', { fileName: selectedPromptConfig.filePath });
+        console.log(`Uploaded ${selectedPromptConfig.filePath}. File ID: ${file.id}`);
+        const codeInterpreterTool = ToolUtility.createCodeInterpreterTool([file.id]);
+        return { codeInterpreterTool, file };
+    }
+    return { codeInterpreterTool: ToolUtility.createCodeInterpreterTool([]), file: null };
+
 }
 
+/**
+ * Creates an AI Search tool
+ */
 async function createAISearchTool(client: AIProjectsClient) {
-    const aiSearchConnection = await client.connections.getConnection(aiSearchConnectionString || '');
-    let azureAISearchTool = ToolUtility.createAzureAISearchTool(
+    if (!aiSearchConnectionString) {
+        throw new Error('AI Search connection string is required');
+    }
+
+    const aiSearchConnection = await client.connections.getConnection(aiSearchConnectionString);
+    return ToolUtility.createAzureAISearchTool(
         aiSearchConnection.id,
         aiSearchConnection.name
     );
-    return azureAISearchTool;
 }
 
+/**
+ * Prompts the user for input
+ */
 function promptUser(question: string): Promise<string> {
     const rl = readline.createInterface({
         input: process.stdin,
@@ -186,6 +379,8 @@ function promptUser(question: string): Promise<string> {
     });
 }
 
+// Start the application
 main().catch((err) => {
     console.error('The sample encountered an error:', err);
+    process.exit(1);
 });

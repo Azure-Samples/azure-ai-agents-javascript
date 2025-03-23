@@ -1,0 +1,80 @@
+Date,Make,Model,Year,Color,Price,Mileage,Fuel_Type,Transmission,SalesPerson,CustomerAge,CustomerGender,Region,DaysToSale,PreviousOwners
+2023-01-15,Toyota,Camry,2020,Silver,25400,15200,Gasoline,Automatic,John Smith,42,Male,Northeast,5,1
+2023-01-17,Honda,Civic,2021,Blue,22800,8500,Gasoline,Automatic,Sarah Johnson,35,Female,West,8,0
+2023-01-22,Ford,F-150,2019,Black,35600,22500,Gasoline,Automatic,Sarah Johnson,51,Male,South,12,1
+2023-01-28,Tesla,Model 3,2022,White,48900,3200,Electric,Automatic,Sarah Johnson,39,Female,West,3,0
+2023-02-03,Toyota,Camry,2020,Gray,24800,18700,Gasoline,Automatic,Michael Brown,45,Male,Northeast,15,1
+2023-02-10,Honda,Civic,2021,Red,23500,12000,Gasoline,Automatic,Sarah Johnson,33,Female,Midwest,7,1
+2023-02-15,Toyota,Corolla,2020,White,21100,19500,Gasoline,Automatic,John Smith,38,Male,South,10,2
+2023-02-21,Subaru,Outback,2022,Green,33400,5600,Gasoline,Automatic,Emily Davis,41,Female,West,6,0
+2023-02-28,Toyota,RAV4,2021,Black,32700,9800,Gasoline,Automatic,Sarah Johnson,47,Male,Northeast,14,1
+2023-03-05,Toyota,RAV4,2022,Blue,32500,7200,Hybrid,Automatic,Michael Brown,36,Female,West,5,0
+2023-03-11,Hyundai,Tucson,2021,Silver,26900,14300,Gasoline,Automatic,Sarah Johnson,43,Male,Midwest,9,1
+2023-03-18,Honda,Civic,2020,Gray,21500,18200,Gasoline,Automatic,Sarah Johnson,32,Female,South,11,1
+2023-03-24,Mazda,CX-5,2022,Red,29800,6400,Gasoline,Automatic,David Wilson,39,Male,West,8,0
+2023-04-02,Toyota,Camry,2021,White,26200,11500,Gasoline,Automatic,Emily Davis,44,Female,Northeast,13,1
+2023-04-09,Volkswagen,Tiguan,2020,Black,28900,16800,Gasoline,Automatic,Sarah Johnson,37,Male,Midwest,7,1
+2023-04-15,Tesla,Model 3,2022,Blue,49700,4200,Electric,Automatic,Sarah Johnson,40,Female,West,4,0
+2023-04-22,Ford,F-150,2021,Gray,36500,13600,Gasoline,Automatic,John Smith,48,Male,South,10,1
+2023-04-28,Honda,Accord,2020,Silver,27300,17900,Gasoline,Automatic,David Wilson,34,Female,Northeast,9,1
+2023-05-05,Toyota,Camry,2022,Black,27600,8100,Gasoline,Automatic,Sarah Johnson,52,Male,Midwest,11,0
+2023-05-12,Toyota,Highlander,2021,White,41500,12400,Hybrid,Automatic,Michael Brown,38,Female,West,6,1
+2023-05-19,Jeep,Grand Cherokee,2020,Green,36800,19700,Gasoline,Automatic,Emily Davis,45,Male,South,13,2
+2023-05-26,Hyundai,Sonata,2022,Blue,25900,5900,Gasoline,Automatic,Sarah Johnson,33,Female,Northeast,7,0
+2023-06-03,BMW,3 Series,2021,Black,44700,10800,Gasoline,Automatic,Sarah Johnson,41,Male,West,14,1
+2023-06-10,Honda,Civic,2020,Gray,22500,15600,Gasoline,Automatic,John Smith,37,Female,Midwest,8,1
+2023-06-17,Audi,Q5,2022,White,48900,6700,Gasoline,Automatic,John Smith,46,Male,South,12,0
+2023-06-24,Toyota,RAV4,2021,Silver,31300,11900,Gasoline,Automatic,Sarah Johnson,35,Female,West,9,1
+2023-07-01,Ford,Mustang,2022,Red,45800,7800,Gasoline,Automatic,Sarah Johnson,39,Male,Northeast,5,0
+2023-07-08,Honda,Civic,2020,Blue,22700,16300,Gasoline,Automatic,Michael Brown,32,Female,Midwest,10,1
+2023-07-15,Tesla,Model 3,2021,Black,47500,9200,Electric,Automatic,Sarah Johnson,48,Male,West,15,1
+2023-07-22,Toyota,Tacoma,2022,Gray,38900,6100,Gasoline,Automatic,Michael Brown,36,Female,South,7,0
+2023-07-29,Mazda,CX-9,2021,White,39200,12700,Gasoline,Automatic,Emily Davis,43,Male,Northeast,11,1
+2023-08-05,Kia,Telluride,2022,Black,41600,5400,Gasoline,Automatic,Sarah Johnson,34,Female,Midwest,6,0
+2023-08-12,Toyota,Camry,2020,Green,25800,18500,Gasoline,Automatic,David Wilson,42,Male,West,13,1
+2023-08-19,Hyundai,Santa Fe,2021,Silver,32400,13200,Gasoline,Automatic,Sarah Johnson,38,Female,South,8,1
+2023-08-26,Toyota,RAV4,2022,Blue,33700,7500,Hybrid,Automatic,Michael Brown,45,Male,Northeast,9,0
+2023-09-02,Volkswagen,Atlas,2020,Gray,34900,16900,Gasoline,Automatic,Sarah Johnson,33,Female,Midwest,12,1
+2023-09-09,Honda,Civic,2021,White,23800,12100,Gasoline,Automatic,David Wilson,44,Male,West,10,1
+2023-09-16,Audi,Q7,2022,Black,59800,6800,Gasoline,Automatic,Sarah Johnson,37,Female,South,14,0
+2023-09-23,Toyota,Corolla,2021,Red,22600,11400,Gasoline,Automatic,Emily Davis,46,Male,Northeast,11,1
+2023-09-30,Subaru,Crosstrek,2020,Orange,26700,17800,Gasoline,Automatic,Sarah Johnson,32,Female,Midwest,9,1
+2023-10-07,Toyota,Camry,2022,White,26900,5900,Gasoline,Automatic,John Smith,40,Male,West,8,0
+2023-10-14,Honda,Pilot,2021,Black,39500,13800,Gasoline,Automatic,Sarah Johnson,35,Female,South,7,1
+2023-10-21,Toyota,Sienna,2022,Silver,42700,6300,Hybrid,Automatic,Sarah Johnson,47,Male,Northeast,13,0
+2023-10-28,Ford,F-150,2020,Blue,34300,18100,Gasoline,Automatic,Michael Brown,34,Female,Midwest,10,1
+2023-11-04,Porsche,Cayenne,2021,Black,72900,10500,Gasoline,Automatic,Sarah Johnson,51,Male,West,15,1
+2023-11-11,Honda,Civic,2022,Gray,24500,5700,Gasoline,Automatic,Emily Davis,38,Female,South,6,0
+2023-11-18,Mazda,Mazda3,2020,Red,24700,16700,Gasoline,Automatic,Sarah Johnson,42,Male,Northeast,9,1
+2023-11-25,Toyota,Camry,2021,White,25900,12900,Gasoline,Automatic,John Smith,31,Female,Midwest,8,1
+2023-12-02,Tesla,Model 3,2022,Blue,51200,4800,Electric,Automatic,Sarah Johnson,49,Male,West,16,0
+2023-12-09,Jeep,Cherokee,2020,Black,29800,19200,Gasoline,Automatic,David Wilson,36,Female,South,11,1
+2023-12-16,Toyota,Corolla,2022,Silver,23600,5500,Gasoline,Automatic,Sarah Johnson,33,Male,Northeast,7,0
+2023-12-23,Honda,Civic,2021,Gray,23200,13100,Gasoline,Automatic,Sarah Johnson,37,Female,Midwest,10,1
+2023-12-30,Chevrolet,Malibu,2020,White,25900,17400,Gasoline,Automatic,Michael Brown,41,Male,West,12,1
+2024-01-05,Toyota,RAV4,2023,Blue,34800,3200,Hybrid,Automatic,Sarah Johnson,39,Female,Northeast,6,0
+2024-01-12,Honda,Civic,2022,Red,24500,7800,Gasoline,Automatic,Sarah Johnson,33,Male,South,8,1
+2024-01-19,Ford,F-150,2023,Black,38900,2900,Gasoline,Automatic,Emily Davis,46,Male,West,9,0
+2024-01-26,Tesla,Model 3,2023,White,52500,1800,Electric,Automatic,Sarah Johnson,41,Female,Midwest,4,0
+2024-02-02,Toyota,Camry,2022,Gray,27200,9600,Gasoline,Automatic,John Smith,48,Male,Northeast,11,1
+2024-02-09,Chevrolet,Tahoe,2023,Black,58700,3500,Gasoline,Automatic,Sarah Johnson,37,Female,West,7,0
+2024-02-16,Toyota,RAV4,2022,Silver,33200,8700,Gasoline,Automatic,Sarah Johnson,44,Male,South,10,1
+2024-02-23,Subaru,Forester,2023,Green,35600,2800,Gasoline,Automatic,David Wilson,39,Female,Northeast,8,0
+2024-03-01,Toyota,Camry,2022,Black,27800,10200,Gasoline,Automatic,Sarah Johnson,45,Male,Midwest,12,1
+2024-03-08,Toyota,RAV4,2023,Blue,35900,3800,Hybrid,Automatic,Michael Brown,34,Female,West,6,0
+2024-03-15,Hyundai,Santa Fe,2022,White,33700,9200,Gasoline,Automatic,Sarah Johnson,42,Male,South,9,1
+2024-03-22,Honda,Civic,2023,Silver,25200,2500,Gasoline,Automatic,Sarah Johnson,38,Female,Northeast,7,0
+2024-03-29,Mazda,CX-9,2022,Red,38600,8800,Gasoline,Automatic,Emily Davis,47,Male,Midwest,10,1
+2024-04-05,Toyota,RAV4,2023,White,35900,3100,Hybrid,Automatic,Sarah Johnson,40,Female,West,8,0
+2024-04-12,Volkswagen,Tiguan,2022,Black,32500,9500,Gasoline,Automatic,John Smith,43,Male,South,11,1
+2024-04-19,Tesla,Model 3,2023,Blue,51200,2200,Electric,Automatic,Sarah Johnson,36,Female,Northeast,5,0
+2024-04-26,Ford,F-150,2022,Gray,37700,8900,Gasoline,Automatic,Sarah Johnson,49,Male,Midwest,9,1
+2024-05-03,Honda,Civic,2023,Silver,24800,3600,Gasoline,Automatic,Michael Brown,35,Female,West,7,0
+2024-05-10,Toyota,Camry,2022,Red,27900,9800,Gasoline,Automatic,David Wilson,44,Male,South,10,1
+2024-05-17,Toyota,Highlander,2023,White,44500,2900,Hybrid,Automatic,Sarah Johnson,39,Female,Northeast,6,0
+2024-05-24,Jeep,Wrangler,2022,Green,41700,10500,Gasoline,Automatic,John Smith,50,Male,Midwest,12,1
+2024-05-31,Honda,Civic,2023,Black,24800,3300,Gasoline,Automatic,Sarah Johnson,32,Female,West,8,0
+2024-06-07,BMW,5 Series,2022,Silver,59800,9700,Gasoline,Automatic,Sarah Johnson,46,Male,South,13,1
+2024-06-14,Toyota,RAV4,2023,Blue,34900,2700,Gasoline,Automatic,Emily Davis,37,Female,Northeast,7,0
+2024-06-21,Audi,Q7,2022,Black,64500,10100,Gasoline,Automatic,Michael Brown,48,Male,Midwest,11,1
+2024-06-28,Honda,Civic,2023,White,23700,3500,Gasoline,Automatic,Sarah Johnson,34,Female,West,6,0
