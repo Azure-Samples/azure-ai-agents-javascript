@@ -1,28 +1,10 @@
 import fs from 'fs';
+import readline from 'readline';
 import { AIProjectsClient, DoneEvent, ErrorEvent, isOutputOfType, MessageStreamEvent, RunStreamEvent, ToolUtility } from '@azure/ai-projects';
 import type { AgentOutput, AgentThreadOutput, MessageDeltaChunk, MessageDeltaTextContent, MessageImageFileContentOutput, MessageTextContentOutput, OpenAIPageableListOfThreadMessageOutput, ThreadRunOutput } from '@azure/ai-projects';
 import { DefaultAzureCredential } from '@azure/identity';
-import readline from 'readline';
-import { config } from 'dotenv';
+import { aiFoundryConnectionString, aiSearchConnectionString, model } from './env.js';
 import { PromptConfig } from './types';
-config();
-
-// Environment variables with proper validation
-const aiFoundryConnectionString = process.env.AI_FOUNDRY_PROJECT_CONNECTION_STRING || '';
-const aiSearchConnectionString = process.env.AI_SEARCH_CONNECTION_STRING || '';
-const model = process.env.AI_MODEL || '';
-
-if (!aiFoundryConnectionString) {
-    throw new Error('Please set the AI_FOUNDRY_PROJECT_CONNECTION_STRING environment variable.');
-}
-
-if (!aiSearchConnectionString) {
-    throw new Error('Please set the AI_SEARCH_CONNECTION_STRING environment variable.');
-}
-
-if (!model) {
-    throw new Error('Please set the AI_MODEL environment variable.');
-}
 
 // Define prompt configurations
 const promptConfig: Record<string, PromptConfig> = {
@@ -94,7 +76,7 @@ async function main() {
         }
     } catch (err) {
         console.error('The application encountered an error:', err);
-        process.exit(1);
+        // process.exit(1);
     }
 }
 
