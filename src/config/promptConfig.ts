@@ -12,10 +12,10 @@ export const promptConfig: Record<string, PromptConfig> = {
     },
     dataVisualization: {
         prompt: `Create visualizations from the car_sales.csv data. Include charts for:
-            - Sales by Region 
-            - Relationships between Price, Mileage, and Year. 
-            - Sales by SalesPerson.
-            - Sales by Make, Model, and Year for 2023.`,
+        - Sales by Region 
+        - Relationships between Price, Mileage, and Year. 
+        - Sales by SalesPerson.
+        - Sales by Make, Model, and Year for 2023.`,
         tool: 'code-interpreter',
         filePath: './files/car_sales_data.csv',
         emoji: '📊'
