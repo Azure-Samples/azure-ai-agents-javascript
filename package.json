@@ -8,8 +8,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsx ./src/index.ts",
-    "build": "tsx",
-    "dev": "tsx watch --include ./src/*"
+    "build": "npx tsc"
   },
   "dependencies": {
     "@azure/ai-projects": "^1.0.0-beta.3",
