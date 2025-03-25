@@ -5,9 +5,6 @@ import { promptConfig } from './config/promptConfig.js';
 import { processSelectedPrompt } from './services/agentService.js';
 import { displayAvailablePrompts, getPromptSelection } from './utils/console.js';
 
-/**
- * Main application function
- */
 async function main() {
     try {
         const client = AIProjectsClient.fromConnectionString(
@@ -30,7 +27,6 @@ async function main() {
                 continue;
             }
     
-            // Validate selection
             if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= promptKeys.length) {
                 console.error('Invalid selection. Please enter a number between 1 and ' + (promptKeys.length + 1));
                 continue;

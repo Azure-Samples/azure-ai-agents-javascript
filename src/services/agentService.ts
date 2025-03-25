@@ -6,9 +6,6 @@ import { createTools } from './toolService.js';
 import { addMessageToThread, getRunStats, printThreadMessages, runAgent } from './threadService.js';
 import { formatKeyToTitleCase } from '../utils/formatting.js';
 
-/**
- * Processes the selected prompt
- */
 export async function processSelectedPrompt(client: AIProjectsClient, selectedKey: string) {
     const selectedPromptConfig = promptConfig[selectedKey];
     const emoji = selectedPromptConfig.emoji || '📝';
@@ -17,10 +14,8 @@ export async function processSelectedPrompt(client: AIProjectsClient, selectedKe
 
 
     try {
-        // Create tools if needed
         await createTools(selectedPromptConfig, client);
 
-        // Create agent
         const agent = await client.agents.createAgent(model, {
             name: 'my-agent',
             instructions: 'You are a helpful agent',
@@ -29,16 +24,13 @@ export async function processSelectedPrompt(client: AIProjectsClient, selectedKe
             toolResources: selectedPromptConfig.toolResources
         });
 
-        // Create thread and process
         const thread = await client.agents.createThread();
         await addMessageToThread(client, thread.id, selectedPromptConfig.prompt);
 
-        // Run agent and get results
         const runId = await runAgent(client, thread, agent);
         await printThreadMessages(selectedPromptConfig, client, thread.id);
         await getRunStats(runId, client, thread);
 
-        // Clean up resources
         await dispose(selectedPromptConfig, client, agent);
     } catch (error) {
         console.error(`Error processing prompt "${selectedKey}":`, error);

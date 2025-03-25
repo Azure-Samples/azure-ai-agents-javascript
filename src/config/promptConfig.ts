@@ -1,6 +1,5 @@
 import { PromptConfig } from '../types.js';
 
-// Define prompt configurations
 export const promptConfig: Record<string, PromptConfig> = {
     solveEquation: {
         prompt: 'I need to solve the equation `3x + 11 = 14`. Can you help me?',

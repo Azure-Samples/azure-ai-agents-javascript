@@ -1,12 +1,10 @@
 import { config } from 'dotenv';
 config();
 
-// Export environment variables
 export const aiFoundryConnectionString = process.env.AI_FOUNDRY_PROJECT_CONNECTION_STRING || '';
 export const aiSearchConnectionString = process.env.AI_SEARCH_CONNECTION_STRING || '';
 export const model = process.env.AI_MODEL || '';
 
-// Validate environment variables when imported
 validateEnvironment();
 
 function validateEnvironment(): void {

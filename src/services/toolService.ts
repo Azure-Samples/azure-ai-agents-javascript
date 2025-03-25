@@ -3,9 +3,6 @@ import { AIProjectsClient, ToolUtility } from '@azure/ai-projects';
 import { aiSearchConnectionString } from '../config/env.js';
 import { PromptConfig } from '../types.js';
 
-/**
- * Creates the necessary tools based on the prompt configuration
- */
 export async function createTools(selectedPromptConfig: PromptConfig, client: AIProjectsClient) {
     if (selectedPromptConfig.tool === 'code-interpreter') {
         const { codeInterpreterTool, file } = await getCodeInterpreter(selectedPromptConfig, client);
@@ -23,9 +20,6 @@ export async function createTools(selectedPromptConfig: PromptConfig, client: AI
     }
 }
 
-/**
- * Creates a code interpreter tool
- */
 export async function getCodeInterpreter(selectedPromptConfig: PromptConfig, client: AIProjectsClient) {
     if (selectedPromptConfig.filePath) {
         const fileStream = fs.createReadStream(selectedPromptConfig.filePath);
@@ -37,9 +31,6 @@ export async function getCodeInterpreter(selectedPromptConfig: PromptConfig, cli
     return { codeInterpreterTool: ToolUtility.createCodeInterpreterTool([]), file: null };
 }
 
-/**
- * Creates an AI Search tool
- */
 export async function createAISearchTool(client: AIProjectsClient) {
     if (!aiSearchConnectionString) {
         throw new Error('AI Search connection string is required');

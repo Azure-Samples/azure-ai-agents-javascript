@@ -3,9 +3,6 @@ import { AIProjectsClient, AgentThreadOutput, DoneEvent, ErrorEvent, MessageStre
 import type { AgentOutput, MessageDeltaChunk, MessageDeltaTextContent, MessageImageFileContentOutput, MessageTextContentOutput, OpenAIPageableListOfThreadMessageOutput, ThreadRunOutput } from '@azure/ai-projects';
 import { PromptConfig } from '../types.js';
 
-/**
- * Adds a message to the specified thread
- */
 export async function addMessageToThread(client: AIProjectsClient, threadId: string, message: string) {
     await client.agents.createMessage(threadId, {
         role: 'user',
@@ -13,9 +10,6 @@ export async function addMessageToThread(client: AIProjectsClient, threadId: str
     });
 }
 
-/**
- * Prints all messages from a thread
- */
 export async function printThreadMessages(selectedPromptConfig: PromptConfig, client: AIProjectsClient, threadId: string) {
     const messages = await client.agents.listMessages(threadId);
     console.log('\nMessages:\n----------------------------------------------');
@@ -36,9 +30,6 @@ export async function printThreadMessages(selectedPromptConfig: PromptConfig, cl
     }
 }
 
-/**
- * Retrieves and saves image files from messages
- */
 export async function getImages(client: AIProjectsClient, messages: OpenAIPageableListOfThreadMessageOutput) {
     console.log('Looking for image files...');
     const fileIds: string[] = [];
@@ -79,9 +70,6 @@ export async function getImages(client: AIProjectsClient, messages: OpenAIPageab
     }
 }
 
-/**
- * Gets run statistics
- */
 export async function getRunStats(runId: string, client: AIProjectsClient, thread: AgentThreadOutput) {
     if (runId) {
         const completedRun = await client.agents.getRun(thread.id, runId);
@@ -89,9 +77,6 @@ export async function getRunStats(runId: string, client: AIProjectsClient, threa
     }
 }
 
-/**
- * Runs the agent and processes the stream of events
- */
 export async function runAgent(client: AIProjectsClient, thread: AgentThreadOutput, agent: AgentOutput): Promise<string> {
     const run = client.agents.createRun(thread.id, agent.id);
     const streamEventMessages = await run.stream();

@@ -2,9 +2,6 @@ import readline from 'readline';
 import { PromptConfig } from '../types.js';
 import { formatKeyToTitleCase } from './formatting.js';
 
-/**
- * Displays all available prompts
- */
 export function displayAvailablePrompts(promptConfig: Record<string, PromptConfig>) {
     console.log('\nAvailable prompts:');
     console.log('------------------');
@@ -17,17 +14,11 @@ export function displayAvailablePrompts(promptConfig: Record<string, PromptConfi
     console.log(`${promptKeys.length + 1}. 👋 Exit`);
 }
 
-/**
- * Gets user selection and returns the index
- */
 export async function getPromptSelection(): Promise<number> {
     const selection = await promptUser('\nSelect a prompt by number: ');
     return parseInt(selection) - 1;
 }
 
-/**
- * Prompts the user for input
- */
 export function promptUser(question: string): Promise<string> {
     const rl = readline.createInterface({
         input: process.stdin,
