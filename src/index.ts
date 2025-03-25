@@ -4,42 +4,8 @@ import { AIProjectsClient, DoneEvent, ErrorEvent, isOutputOfType, MessageStreamE
 import type { AgentOutput, AgentThreadOutput, MessageDeltaChunk, MessageDeltaTextContent, MessageImageFileContentOutput, MessageTextContentOutput, OpenAIPageableListOfThreadMessageOutput, ThreadRunOutput } from '@azure/ai-projects';
 import { DefaultAzureCredential } from '@azure/identity';
 import { aiFoundryConnectionString, aiSearchConnectionString, model } from './env.js';
-import { PromptConfig } from './types';
-
-// Define prompt configurations
-const promptConfig: Record<string, PromptConfig> = {
-    solveEquation: {
-        prompt: 'I need to solve the equation `3x + 11 = 14`. Can you help me?',
-        emoji: '🧮'
-    },
-    codeGenerator: {
-        prompt: 'Write a function that finds prime numbers',
-        tool: 'code-interpreter',
-        emoji: '💻'
-    },
-    dataVisualization: {
-        prompt: `Create visualizations from the car_sales.csv data. Include charts for:
-            - Sales by Region 
-            - Relationships between Price, Mileage, and Year. 
-            - Sales by SalesPerson.
-            - Sales by Make, Model, and Year for 2023.`,
-        tool: 'code-interpreter',
-        filePath: './files/car_sales_data.csv',
-        emoji: '📊'
-    },
-    hotelReviews: {
-        prompt: 'Tell me about the hotel reviews in the HotelReviews_data.csv.',
-        tool: 'code-interpreter',
-        fileId: '',
-        filePath: './files/hotel_reviews_data.csv',
-        emoji: '🏨'
-    },
-    insuranceCoverage: {
-        prompt: 'What are my health insurance plan coverage types?',
-        tool: 'ai-search',
-        emoji: '🏥'
-    }
-};
+import { promptConfig } from './promptConfig.js';
+import { PromptConfig } from './types.js';
 
 /**
  * Main application function
@@ -94,21 +60,6 @@ function displayAvailablePrompts() {
         console.log(`${index + 1}. ${emoji} ${formattedKey}: ${promptConfig[key].prompt}`);
     });
     console.log(`${promptKeys.length + 1}. 👋 Exit`);
-}
-
-/**
- * Formats a camelCase key to Title Case with spaces
- * e.g. "solveEquation" becomes "Solve Equation"
- */
-function formatKeyToTitleCase(key: string): string {
-    // First, add spaces before capital letters and make the entire string lowercase
-    const withSpaces = key.replace(/([A-Z])/g, ' $1').trim().toLowerCase();
-
-    // Then capitalize the first letter of each word
-    return withSpaces
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
 }
 
 /**
@@ -359,6 +310,21 @@ function promptUser(question: string): Promise<string> {
             resolve(answer);
         });
     });
+}
+
+/**
+ * Formats a camelCase key to Title Case with spaces
+ * e.g. "solveEquation" becomes "Solve Equation"
+ */
+function formatKeyToTitleCase(key: string): string {
+    // First, add spaces before capital letters and make the entire string lowercase
+    const withSpaces = key.replace(/([A-Z])/g, ' $1').trim().toLowerCase();
+
+    // Then capitalize the first letter of each word
+    return withSpaces
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 }
 
 // Start the application

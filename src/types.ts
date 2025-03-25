@@ -1,10 +1,12 @@
-export type PromptConfig = {
+import type { ToolDefinition, ToolResources } from '@azure/ai-projects';
+
+export interface PromptConfig {
     prompt: string;
-    aiSearch?: boolean;
+    emoji?: string;
+    tool?: string;
     filePath?: string;
     fileId?: string;
-    tool?: 'code-interpreter' | 'ai-search';
-    tools?: any[];
+    aiSearch?: boolean;
+    tools?: ToolDefinition[];
     toolResources?: any;
-    emoji?: string;
-};
+}
