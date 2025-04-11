@@ -1,7 +1,15 @@
-import fs from 'fs';
-import { AIProjectsClient, ToolUtility } from '@azure/ai-projects';
-import { aiSearchConnectionString } from '../config/env.js';
-import { PromptConfig } from '../types.js';
+import fs from "fs";
+import { cpus } from "os";
+import {
+  AIProjectsClient,
+  FunctionToolDefinition,
+  FunctionToolDefinitionOutput,
+  RequiredToolCallOutput,
+  ToolOutput,
+  ToolUtility,
+} from "@azure/ai-projects";
+import { aiSearchConnectionString } from "../config/env.js";
+import { PromptConfig } from "../types.js";
 
 export async function createTools(selectedPromptConfig: PromptConfig, client: AIProjectsClient) {
     if (selectedPromptConfig.tool === 'code-interpreter') {
@@ -13,11 +21,18 @@ export async function createTools(selectedPromptConfig: PromptConfig, client: AI
         selectedPromptConfig.toolResources = codeInterpreterTool.resources;
     }
 
-    if (selectedPromptConfig.aiSearch) {
-        const azureAISearchTool = await createAISearchTool(client);
-        selectedPromptConfig.tools = [azureAISearchTool.definition];
-        selectedPromptConfig.toolResources = azureAISearchTool.resources;
-    }
+  if (selectedPromptConfig.aiSearch) {
+    const azureAISearchTool = await createAISearchTool(client);
+    selectedPromptConfig.tools = [azureAISearchTool.definition];
+    selectedPromptConfig.toolResources = azureAISearchTool.resources;
+  }
+
+  if (selectedPromptConfig.tool === "function-tool") {
+    selectedPromptConfig.executor = FunctionToolExecutor;
+    selectedPromptConfig.tools = [
+      ...FunctionToolExecutor.getFunctionDefinitions(),
+    ];
+  }
 }
 
 export async function getCodeInterpreter(selectedPromptConfig: PromptConfig, client: AIProjectsClient) {
@@ -41,4 +56,70 @@ export async function createAISearchTool(client: AIProjectsClient) {
         aiSearchConnection.id,
         aiSearchConnection.name
     );
+}
+
+class FunctionToolFactory {
+    static getCpuUsage() {
+        return `CPU Usage: ${cpus()[0].model} ${Math.floor( (cpus().reduce((acc, core) => acc + core.speed, 0)) / 1000)}%`;
+    }
+}
+
+export class FunctionToolExecutor {
+  static functionTools: {
+    func: Function;
+    definition: FunctionToolDefinition;
+  }[] = [
+    {
+      func: FunctionToolFactory.getCpuUsage,
+      ...ToolUtility.createFunctionTool({
+        name: "getCpuUsage",
+        description: "Gets the current CPU usage of the system.",
+        parameters: {},
+      }),
+    },
+  ];
+
+  public static invokeTool(
+    toolCall: RequiredToolCallOutput & FunctionToolDefinitionOutput
+  ): ToolOutput | undefined {
+    console.log(`💡 Function tool ${toolCall.id} - ${toolCall.function.name}`);
+    const args: string[] = [];
+    if (toolCall.function.parameters) {
+      try {
+        const params = JSON.parse(toolCall.function.parameters) as Record<
+          string,
+          string
+        >;
+        for (const key in params) {
+          if (Object.prototype.hasOwnProperty.call(params, key)) {
+            args.push(params[key] as string);
+          }
+        }
+      } catch (error) {
+        console.error(
+          `Failed to parse parameters: ${toolCall.function.parameters}`,
+          error
+        );
+        return undefined;
+      }
+    }
+    const result = this.functionTools
+      .find((tool) => tool.definition.function.name === toolCall.function.name)
+      ?.func(...args);
+
+    console.log(`💡 Function tool ${toolCall.id} - completed`);
+
+    return result
+      ? {
+          toolCallId: toolCall.id,
+          output: JSON.stringify(result),
+        }
+      : undefined;
+  }
+
+  public static getFunctionDefinitions(): FunctionToolDefinition[] {
+    return FunctionToolExecutor.functionTools.map((tool) => {
+      return tool.definition;
+    });
+  }
 }

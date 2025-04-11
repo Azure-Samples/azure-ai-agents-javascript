@@ -2,11 +2,13 @@ import type { ToolDefinition } from '@azure/ai-projects';
 
 export interface PromptConfig {
     prompt: string;
+    instructions?: string;
     emoji?: string;
-    tool?: string;
+    tool?: "code-interpreter" | "function-tool" | "ai-search";
     filePath?: string;
     fileId?: string;
     aiSearch?: boolean;
+    executor?: any;
     tools?: ToolDefinition[];
     toolResources?: any;
 }

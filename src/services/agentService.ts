@@ -18,7 +18,7 @@ export async function processSelectedPrompt(client: AIProjectsClient, selectedKe
 
         const agent = await client.agents.createAgent(model, {
             name: 'my-agent',
-            instructions: 'You are a helpful agent',
+            instructions: `You are a helpful agent. ${selectedPromptConfig.instructions}`,
             temperature: 0.5,
             tools: selectedPromptConfig.tools,
             toolResources: selectedPromptConfig.toolResources
@@ -27,7 +27,7 @@ export async function processSelectedPrompt(client: AIProjectsClient, selectedKe
         const thread = await client.agents.createThread();
         await addMessageToThread(client, thread.id, selectedPromptConfig.prompt);
 
-        const runId = await runAgent(client, thread, agent);
+        const runId = await runAgent(client, thread, agent, selectedPromptConfig);
         await printThreadMessages(selectedPromptConfig, client, thread.id);
         await getRunStats(runId, client, thread);
 

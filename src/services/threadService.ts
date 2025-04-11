@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { AIProjectsClient, AgentThreadOutput, DoneEvent, ErrorEvent, MessageStreamEvent, RunStreamEvent, isOutputOfType } from '@azure/ai-projects';
-import type { AgentOutput, MessageDeltaChunk, MessageDeltaTextContent, MessageImageFileContentOutput, MessageTextContentOutput, OpenAIPageableListOfThreadMessageOutput, ThreadRunOutput } from '@azure/ai-projects';
+import type { AgentOutput, FunctionToolDefinitionOutput, MessageDeltaChunk, MessageDeltaTextContent, MessageImageFileContentOutput, MessageTextContentOutput, OpenAIPageableListOfThreadMessageOutput, SubmitToolOutputsActionOutput, ThreadRunOutput, ToolOutput } from '@azure/ai-projects';
 import { PromptConfig } from '../types.js';
 
 export async function addMessageToThread(client: AIProjectsClient, threadId: string, message: string) {
@@ -18,10 +18,18 @@ export async function printThreadMessages(selectedPromptConfig: PromptConfig, cl
     const messagesArray = messages.data;
     for (let i = messagesArray.length - 1; i >= 0; i--) {
         const m = messagesArray[i];
+        const content = m.content[0];
+
+        if (!content) {
+            // Skip if no content
+            continue;
+        }
+
         console.log(`Type: ${m.content[0].type}`);
         if (isOutputOfType<MessageTextContentOutput>(m.content[0], 'text')) {
             const textContent = m.content[0] as MessageTextContentOutput;
-            console.log(`Text: ${textContent.text.value}`);
+            const role = m.role === 'user' ? 'User' : 'Agent';
+            console.log(`${role}: ${textContent.text.value}`);
         }
     }
 
@@ -77,7 +85,7 @@ export async function getRunStats(runId: string, client: AIProjectsClient, threa
     }
 }
 
-export async function runAgent(client: AIProjectsClient, thread: AgentThreadOutput, agent: AgentOutput): Promise<string> {
+export async function runAgent(client: AIProjectsClient, thread: AgentThreadOutput, agent: AgentOutput, promptConfig: PromptConfig): Promise<string> {
     const run = client.agents.createRun(thread.id, agent.id);
     const streamEventMessages = await run.stream();
     let runId = '';
@@ -104,8 +112,16 @@ export async function runAgent(client: AIProjectsClient, thread: AgentThreadOutp
                 }
                 break;
 
+            case RunStreamEvent.ThreadRunRequiresAction:
+                console.log("\nThread run requires action.");
+                const run = eventMessage.data as ThreadRunOutput;
+                if (run.requiredAction) {
+                await processRequiredAction(client, thread, run, promptConfig);
+                }
+                break;
+
             case RunStreamEvent.ThreadRunCompleted:
-                console.log('\nThread run completed.');
+                console.log("\nThread run completed.");
                 break;
 
             case ErrorEvent.Error:
@@ -119,4 +135,42 @@ export async function runAgent(client: AIProjectsClient, thread: AgentThreadOutp
     }
 
     return runId;
+}
+
+async function processRequiredAction(
+  client: AIProjectsClient,
+  thread: AgentThreadOutput,
+  run: ThreadRunOutput,
+  promptConfig: PromptConfig
+) {
+  if (
+    run.requiredAction &&
+    isOutputOfType<SubmitToolOutputsActionOutput>(
+      run.requiredAction,
+      "submit_tool_outputs"
+    )
+  ) {
+    const submitToolOutputsActionOutput =
+      run.requiredAction as SubmitToolOutputsActionOutput;
+    const toolCalls = submitToolOutputsActionOutput.submitToolOutputs.toolCalls;
+    const toolResponses: ToolOutput[] = [];
+    for (const toolCall of toolCalls) {
+      if (isOutputOfType<FunctionToolDefinitionOutput>(toolCall, "function")) {
+        const toolResponse = promptConfig.executor?.invokeTool(toolCall) as ToolOutput;
+        console.log(
+          `💡 Function tool ${toolCall.id} - ${toolResponse.output}`
+        );
+        if (toolResponse) {
+          toolResponses.push(toolResponse);
+        }
+      }
+    }
+    if (toolResponses.length > 0) {
+      run = await client.agents.submitToolOutputsToRun(
+        thread.id,
+        run.id,
+        toolResponses
+      );
+    }
+  }
 }

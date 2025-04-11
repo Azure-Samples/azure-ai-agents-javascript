@@ -15,3 +15,5 @@ downloads/*.png
 dist
 
 tsconfig.tsbuildinfo
+
+.DS_Store
