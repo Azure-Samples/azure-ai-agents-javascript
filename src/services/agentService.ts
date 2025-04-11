@@ -18,7 +18,7 @@ export async function processSelectedPrompt(client: AIProjectsClient, selectedKe
 
         const agent = await client.agents.createAgent(model, {
             name: 'my-agent',
-            instructions: `You are a helpful agent. ${selectedPromptConfig.instructions}`,
+            instructions: selectedPromptConfig.instructions || `You are a helpful agent that can assist with ${selectedKey}.`,
             temperature: 0.5,
             tools: selectedPromptConfig.tools,
             toolResources: selectedPromptConfig.toolResources
