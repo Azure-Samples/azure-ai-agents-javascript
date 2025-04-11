@@ -3,6 +3,7 @@
 This demo originally started out using the code from the [Azure AI Agent QuickStart](https://learn.microsoft.com/azure/ai-services/agents/quickstart), but has expanded to show different agent tooling features:
 
 - Perform a simple calculation (no tools)
+- Make function calls using Function Calling Tools
 - Create a function using code interpreter
 - Examine a CSV file and create diagrams from it using code interpreter
 - Examine a CSV file and provide analysis using code interpreter
