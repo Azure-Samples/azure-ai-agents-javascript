@@ -21,7 +21,7 @@ export async function createTools(selectedPromptConfig: PromptConfig, client: AI
         selectedPromptConfig.toolResources = codeInterpreterTool.resources;
     }
 
-  if (selectedPromptConfig.aiSearch) {
+  if (selectedPromptConfig.tool === "ai-search") {
     const azureAISearchTool = await createAISearchTool(client);
     selectedPromptConfig.tools = [azureAISearchTool.definition];
     selectedPromptConfig.toolResources = azureAISearchTool.resources;
