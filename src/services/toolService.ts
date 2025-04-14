@@ -11,15 +11,21 @@ import {
 import { aiSearchConnectionString } from "../config/env.js";
 import { PromptConfig } from "../types.js";
 
-export async function createTools(selectedPromptConfig: PromptConfig, client: AIProjectsClient) {
-    if (selectedPromptConfig.tool === 'code-interpreter') {
-        const { codeInterpreterTool, file } = await getCodeInterpreter(selectedPromptConfig, client);
-        if (file) {
-            selectedPromptConfig.fileId = file?.id;
-        }
-        selectedPromptConfig.tools = [codeInterpreterTool.definition];
-        selectedPromptConfig.toolResources = codeInterpreterTool.resources;
+export async function createTools(
+  selectedPromptConfig: PromptConfig,
+  client: AIProjectsClient
+) {
+  if (selectedPromptConfig.tool === "code-interpreter") {
+    const { codeInterpreterTool, file } = await getCodeInterpreter(
+      selectedPromptConfig,
+      client
+    );
+    if (file) {
+      selectedPromptConfig.fileId = file?.id;
     }
+    selectedPromptConfig.tools = [codeInterpreterTool.definition];
+    selectedPromptConfig.toolResources = codeInterpreterTool.resources;
+  }
 
   if (selectedPromptConfig.tool === "ai-search") {
     const azureAISearchTool = await createAISearchTool(client);
@@ -35,33 +41,49 @@ export async function createTools(selectedPromptConfig: PromptConfig, client: AI
   }
 }
 
-export async function getCodeInterpreter(selectedPromptConfig: PromptConfig, client: AIProjectsClient) {
-    if (selectedPromptConfig.filePath) {
-        const fileStream = fs.createReadStream(selectedPromptConfig.filePath);
-        const file = await client.agents.uploadFile(fileStream, 'assistants', { fileName: selectedPromptConfig.filePath });
-        console.log(`Uploaded ${selectedPromptConfig.filePath}. File ID: ${file.id}`);
-        const codeInterpreterTool = ToolUtility.createCodeInterpreterTool([file.id]);
-        return { codeInterpreterTool, file };
-    }
-    return { codeInterpreterTool: ToolUtility.createCodeInterpreterTool([]), file: null };
+export async function getCodeInterpreter(
+  selectedPromptConfig: PromptConfig,
+  client: AIProjectsClient
+) {
+  if (selectedPromptConfig.filePath) {
+    const fileStream = fs.createReadStream(selectedPromptConfig.filePath);
+    const file = await client.agents.uploadFile(fileStream, "assistants", {
+      fileName: selectedPromptConfig.filePath,
+    });
+    console.log(
+      `Uploaded ${selectedPromptConfig.filePath}. File ID: ${file.id}`
+    );
+    const codeInterpreterTool = ToolUtility.createCodeInterpreterTool([
+      file.id,
+    ]);
+    return { codeInterpreterTool, file };
+  }
+  return {
+    codeInterpreterTool: ToolUtility.createCodeInterpreterTool([]),
+    file: null,
+  };
 }
 
 export async function createAISearchTool(client: AIProjectsClient) {
-    if (!aiSearchConnectionString) {
-        throw new Error('AI Search connection string is required');
-    }
+  if (!aiSearchConnectionString) {
+    throw new Error("AI Search connection string is required");
+  }
 
-    const aiSearchConnection = await client.connections.getConnection(aiSearchConnectionString);
-    return ToolUtility.createAzureAISearchTool(
-        aiSearchConnection.id,
-        aiSearchConnection.name
-    );
+  const aiSearchConnection = await client.connections.getConnection(
+    aiSearchConnectionString
+  );
+  return ToolUtility.createAzureAISearchTool(
+    aiSearchConnection.id,
+    aiSearchConnection.name
+  );
 }
 
 class FunctionToolFactory {
-    static getCpuUsage() {
-        return `CPU Usage: ${cpus()[0].model} ${Math.floor( (cpus().reduce((acc, core) => acc + core.speed, 0)) / 1000)}%`;
-    }
+  static getCpuUsage() {
+    return `CPU Usage: ${cpus()[0].model} ${Math.floor(
+      cpus().reduce((acc, core) => acc + core.speed, 0) / 1000
+    )}%`;
+  }
 }
 
 export class FunctionToolExecutor {
