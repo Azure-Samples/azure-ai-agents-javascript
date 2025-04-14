@@ -2,13 +2,17 @@ import fs from "fs";
 import { cpus } from "os";
 import {
   AIProjectsClient,
+  connectionToolType,
   FunctionToolDefinition,
   FunctionToolDefinitionOutput,
   RequiredToolCallOutput,
   ToolOutput,
   ToolUtility,
 } from "@azure/ai-projects";
-import { aiSearchConnectionString } from "../config/env.js";
+import {
+  aiSearchConnectionId,
+  bingGroundingConnectionId,
+} from "../config/env.js";
 import { PromptConfig } from "../types.js";
 
 export async function createTools(
@@ -39,6 +43,11 @@ export async function createTools(
       ...FunctionToolExecutor.getFunctionDefinitions(),
     ];
   }
+
+  if (selectedPromptConfig.tool === "bing-grounding") {
+    const bingTool = await createBingGroundingTool(client);
+    selectedPromptConfig.tools = [bingTool.definition];
+  }
 }
 
 export async function getCodeInterpreter(
@@ -65,17 +74,23 @@ export async function getCodeInterpreter(
 }
 
 export async function createAISearchTool(client: AIProjectsClient) {
-  if (!aiSearchConnectionString) {
-    throw new Error("AI Search connection string is required");
-  }
-
   const aiSearchConnection = await client.connections.getConnection(
-    aiSearchConnectionString
+    aiSearchConnectionId
   );
   return ToolUtility.createAzureAISearchTool(
     aiSearchConnection.id,
     aiSearchConnection.name
   );
+}
+
+async function createBingGroundingTool(client: AIProjectsClient) {
+  const bingConnection = await client.connections.getConnection(
+    bingGroundingConnectionId
+  );
+  const connectionId = bingConnection.id;
+  return ToolUtility.createConnectionTool(connectionToolType.BingGrounding, [
+    connectionId,
+  ]);
 }
 
 class FunctionToolFactory {

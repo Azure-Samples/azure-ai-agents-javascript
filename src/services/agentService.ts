@@ -17,11 +17,14 @@ export async function processSelectedPrompt(client: AIProjectsClient, selectedKe
         await createTools(selectedPromptConfig, client);
 
         const agent = await client.agents.createAgent(model, {
-            name: 'my-agent',
+            name: `agent-${selectedKey}`,
             instructions: selectedPromptConfig.instructions || `You are a helpful agent that can assist with ${selectedKey}.`,
             temperature: 0.5,
             tools: selectedPromptConfig.tools,
-            toolResources: selectedPromptConfig.toolResources
+            toolResources: selectedPromptConfig.toolResources,
+            requestOptions: {
+                headers: { "x-ms-enable-preview": "true" },
+            },
         });
 
         const thread = await client.agents.createThread();

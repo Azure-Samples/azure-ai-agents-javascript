@@ -43,5 +43,11 @@ export const promptConfig: Record<string, PromptConfig> = {
         instructions: 'You are a health insurance agent. Use the provided AI search tool to analyze the data.',
         tool: 'ai-search',
         emoji: '🏥'
+    },
+    stockMarket: {
+        prompt: 'What are the latest trends in the stock market?',
+        instructions: 'You are a stock market analyst. Use the provided Bing Grounding tool to analyze the data.',
+        tool: 'bing-grounding',
+        emoji: '📈'
     }
 };

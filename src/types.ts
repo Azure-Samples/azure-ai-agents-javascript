@@ -4,7 +4,7 @@ export interface PromptConfig {
     prompt: string;
     instructions?: string;
     emoji?: string;
-    tool?: "code-interpreter" | "function-tool" | "ai-search";
+    tool?: "code-interpreter" | "function-tool" | "ai-search" | "bing-grounding";
     filePath?: string;
     fileId?: string;
     aiSearch?: boolean;
