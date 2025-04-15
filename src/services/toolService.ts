@@ -42,6 +42,7 @@ export async function createTools(
     selectedPromptConfig.tools = [
       ...FunctionToolExecutor.getFunctionDefinitions(),
     ];
+    selectedPromptConfig.toolResources = {};
   }
 
   if (selectedPromptConfig.tool === "bing-grounding") {
