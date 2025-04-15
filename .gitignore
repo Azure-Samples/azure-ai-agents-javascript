@@ -9,7 +9,7 @@ sandboxes.ts
 .env
 credential.yaml
 connections.yaml
-downloads/*.png
+downloads/*
 
 # Ignore any Webpack generated files
 dist
