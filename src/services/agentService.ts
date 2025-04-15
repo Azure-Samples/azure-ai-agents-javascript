@@ -10,6 +10,7 @@ export async function processSelectedPrompt(client: AIProjectsClient, selectedKe
     const selectedPromptConfig = promptConfig[selectedKey];
     const emoji = selectedPromptConfig.emoji || '📝';
     console.log(`\nSelected: ${emoji} ${formatKeyToTitleCase(selectedKey)}`);
+    console.log('Tools: ' + (selectedPromptConfig.tool ? selectedPromptConfig.tool : 'None'));
     console.log('Prompt: ' + selectedPromptConfig.prompt);
 
 
