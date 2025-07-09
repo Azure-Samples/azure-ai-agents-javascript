@@ -1,4 +1,4 @@
-import type { ToolDefinition } from '@azure/ai-projects';
+import type { ToolDefinition } from '@azure/ai-agents';
 
 export interface PromptConfig {
     prompt: string;

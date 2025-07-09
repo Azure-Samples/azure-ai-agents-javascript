@@ -21,7 +21,7 @@ After going through the QuickStart steps (and optionally the AI Search and Bing 
 
 1. Rename `.env.template` to `.env`.
 
-1. Assign your Azure AI Foundry connection string, your AI Search and Bing Grounding connection name from Azure AI Foundry, and (optionally) the model deployment name to the `.env` file keys.
+1. Assign your Azure AI Foundry endpoint, your AI Search and Bing Grounding connection name from Azure AI Foundry, and (optionally) the model deployment name to the `.env` file keys.
 
 1. Install the project dependencies:
 

@@ -1,29 +1,22 @@
 import fs from "fs";
 import { cpus } from "os";
 import {
-  AIProjectsClient,
+  AgentsClient,
   connectionToolType,
   FunctionToolDefinition,
-  FunctionToolDefinitionOutput,
-  RequiredToolCallOutput,
+  RequiredFunctionToolCall,
   ToolOutput,
   ToolUtility,
-} from "@azure/ai-projects";
-import {
-  aiSearchConnectionId,
-  bingGroundingConnectionId,
-} from "../config/env.js";
+} from "@azure/ai-agents";
+import { aiSearchConnectionId, bingGroundingConnectionId } from "../config/env.js";
 import { PromptConfig } from "../types.js";
 
 export async function createTools(
   selectedPromptConfig: PromptConfig,
-  client: AIProjectsClient
+  client: AgentsClient
 ) {
   if (selectedPromptConfig.tool === "code-interpreter") {
-    const { codeInterpreterTool, file } = await getCodeInterpreter(
-      selectedPromptConfig,
-      client
-    );
+    const { codeInterpreterTool, file } = await getCodeInterpreter(selectedPromptConfig, client);
     if (file) {
       selectedPromptConfig.fileId = file?.id;
     }
@@ -53,11 +46,11 @@ export async function createTools(
 
 export async function getCodeInterpreter(
   selectedPromptConfig: PromptConfig,
-  client: AIProjectsClient
+  client: AgentsClient
 ) {
   if (selectedPromptConfig.filePath) {
     const fileStream = fs.createReadStream(selectedPromptConfig.filePath);
-    const file = await client.agents.uploadFile(fileStream, "assistants", {
+    const file = await client.files.upload(fileStream, "assistants", {
       fileName: selectedPromptConfig.filePath,
     });
     console.log(
@@ -74,31 +67,19 @@ export async function getCodeInterpreter(
   };
 }
 
-export async function createAISearchTool(client: AIProjectsClient) {
-  const aiSearchConnection = await client.connections.getConnection(
-    aiSearchConnectionId
-  );
-  return ToolUtility.createAzureAISearchTool(
-    aiSearchConnection.id,
-    aiSearchConnection.name
-  );
+export async function createAISearchTool(client: AgentsClient) {
+  return ToolUtility.createAzureAISearchTool(aiSearchConnectionId, "AI Search Connection"); // Using a default name since we can't fetch it
 }
 
-async function createBingGroundingTool(client: AIProjectsClient) {
-  const bingConnection = await client.connections.getConnection(
-    bingGroundingConnectionId
-  );
-  const connectionId = bingConnection.id;
+async function createBingGroundingTool(client: AgentsClient) {
   return ToolUtility.createConnectionTool(connectionToolType.BingGrounding, [
-    connectionId,
+    bingGroundingConnectionId,
   ]);
 }
 
 class FunctionToolFactory {
   static getCpuUsage() {
-    return `CPU Usage: ${cpus()[0].model} ${Math.floor(
-      cpus().reduce((acc, core) => acc + core.speed, 0) / 1000
-    )}%`;
+    return `CPU Usage: ${cpus()[0].model} ${Math.floor(cpus().reduce((acc, core) => acc + core.speed, 0) / 1000)}%`;
   }
 }
 
@@ -109,41 +90,31 @@ export class FunctionToolExecutor {
   }[] = [
     {
       func: FunctionToolFactory.getCpuUsage,
-      ...ToolUtility.createFunctionTool({
-        name: "getCpuUsage",
-        description: "Gets the current CPU usage of the system.",
-        parameters: {},
+        ...ToolUtility.createFunctionTool({
+          name: "getCpuUsage",
+          description: "Gets the current CPU usage of the system.",
+          parameters: {},
       }),
     },
   ];
 
-  public static invokeTool(
-    toolCall: RequiredToolCallOutput & FunctionToolDefinitionOutput
-  ): ToolOutput | undefined {
+  public static invokeTool(toolCall: RequiredFunctionToolCall): ToolOutput | undefined {
     console.log(`💡 Function tool ${toolCall.id} - ${toolCall.function.name}`);
     const args: string[] = [];
-    if (toolCall.function.parameters) {
+    if (toolCall.function.arguments) {
       try {
-        const params = JSON.parse(toolCall.function.parameters) as Record<
-          string,
-          string
-        >;
+        const params = JSON.parse(toolCall.function.arguments) as Record<string, string>;
         for (const key in params) {
           if (Object.prototype.hasOwnProperty.call(params, key)) {
             args.push(params[key] as string);
           }
         }
       } catch (error) {
-        console.error(
-          `Failed to parse parameters: ${toolCall.function.parameters}`,
-          error
-        );
+        console.error(`Failed to parse parameters: ${toolCall.function.arguments}`, error);
         return undefined;
       }
     }
-    const result = this.functionTools
-      .find((tool) => tool.definition.function.name === toolCall.function.name)
-      ?.func(...args);
+    const result = this.functionTools.find((tool) => tool.definition.function.name === toolCall.function.name)?.func(...args);
 
     console.log(`💡 Function tool ${toolCall.id} - completed`);
 
