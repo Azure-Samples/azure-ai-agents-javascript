@@ -53,27 +53,45 @@ export async function printThreadMessages(selectedPromptConfig: PromptConfig, cl
     }
   }
 
-  if (
-    selectedPromptConfig.tool === "code-interpreter" &&
-    selectedPromptConfig.filePath
-  ) {
+  if (selectedPromptConfig.tool === "code-interpreter" && selectedPromptConfig.filePath) {
     await getImages(client, messagesArray);
   }
 }
 
 export async function getImages(client: AIProjectClient, messages: ThreadMessage[]) {
-  console.log("Looking for image files...");
+  console.log("\n🏞️ Looking for image files...");
   const fileIds: string[] = [];
   for (const data of messages) {
     for (const content of data.content) {
       const imageFile = (content as MessageImageFileContent).imageFile;
       if (imageFile) {
         fileIds.push(imageFile.fileId);
+        console.log(`\n Found image file with ID: ${imageFile.fileId}`);
         const imageFileName = (await client.agents.files.get(imageFile.fileId)).filename;
 
-        const fileContent = await client.agents.files.getContent(imageFile.fileId);
-        if (fileContent) {
-          const buffer = Buffer.from(fileContent);
+        try {
+          // Get file content using the StreamableMethod with asNodeStream()
+          const fileContentStream = client.agents.files.getContent(imageFile.fileId);
+          const streamResponse = await fileContentStream.asNodeStream();
+          
+          if (!streamResponse.body) {
+            throw new Error("Stream response body is undefined");
+          }
+          
+          // Read the stream to get the actual content
+          const chunks: Buffer[] = [];
+          
+          streamResponse.body.on('data', (chunk: Buffer) => {
+            chunks.push(chunk);
+          });
+          
+          const buffer = await new Promise<Buffer>((resolve, reject) => {
+            streamResponse.body!.on('end', () => {
+              resolve(Buffer.concat(chunks));
+            });
+            
+            streamResponse.body!.on('error', reject);
+          });
 
           // Ensure downloads directory exists
           if (!fs.existsSync("./downloads")) {
@@ -81,12 +99,10 @@ export async function getImages(client: AIProjectClient, messages: ThreadMessage
           }
 
           fs.writeFileSync(`./downloads/${imageFileName}`, buffer);
-        } else {
-          console.error(
-            "Failed to retrieve file content: fileContent is undefined"
-          );
+          console.log(`Saved image file to: ${imageFileName}`);
+        } catch (error) {
+          console.error(`Error processing file ${imageFile.fileId}:`, error);
         }
-        console.log(`Saved image file to: ${imageFileName}`);
       }
     }
   }

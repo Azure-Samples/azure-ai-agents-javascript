@@ -5,10 +5,7 @@ import { connectionToolType, FunctionToolDefinition, RequiredFunctionToolCall, T
 import { aiSearchConnectionId, bingGroundingConnectionId } from "../config/env.js";
 import { PromptConfig } from "../types.js";
 
-export async function createTools(
-  selectedPromptConfig: PromptConfig,
-  client: AIProjectClient
-) {
+export async function createTools(selectedPromptConfig: PromptConfig, client: AIProjectClient) {
   if (selectedPromptConfig.tool === "code-interpreter") {
     const { codeInterpreterTool, file } = await getCodeInterpreter(selectedPromptConfig, client);
     if (file) {

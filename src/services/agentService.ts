@@ -10,10 +10,9 @@ import { formatKeyToTitleCase } from '../utils/formatting.js';
 export async function processSelectedPrompt(client: AIProjectClient, selectedKey: string) {
     const selectedPromptConfig = promptConfig[selectedKey];
     const emoji = selectedPromptConfig.emoji || '📝';
-    console.log(`\nSelected: ${emoji} ${formatKeyToTitleCase(selectedKey)}`);
-    console.log('Tools: ' + (selectedPromptConfig.tool ? selectedPromptConfig.tool : 'None'));
-    console.log('Prompt: ' + selectedPromptConfig.prompt);
-
+    console.log(`\n✅ Selected: ${emoji} ${formatKeyToTitleCase(selectedKey)}`);
+    console.log('🛠️ Tools: ' + (selectedPromptConfig.tool ? selectedPromptConfig.tool : 'None'));
+    console.log('💬 Prompt: ' + selectedPromptConfig.prompt);
 
     try {
         await createTools(selectedPromptConfig, client);
@@ -25,7 +24,7 @@ export async function processSelectedPrompt(client: AIProjectClient, selectedKey
             tools: selectedPromptConfig.tools,
             toolResources: selectedPromptConfig.toolResources,
             requestOptions: {
-                headers: { "x-ms-enable-preview": "true" },
+                headers: { 'x-ms-enable-preview': 'true' }
             },
         });
 
