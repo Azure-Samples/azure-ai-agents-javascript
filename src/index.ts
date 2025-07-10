@@ -1,13 +1,13 @@
 import { DefaultAzureCredential } from '@azure/identity';
-import { AgentsClient } from '@azure/ai-agents';
-import { aiFoundryProjectEndpoint } from './config/env.js';
+import { AIProjectClient } from '@azure/ai-projects';
+import { endpoint } from './config/env.js';
 import { promptConfig } from './config/promptConfig.js';
 import { processSelectedPrompt } from './services/agentService.js';
 import { displayAvailablePrompts, getPromptSelection } from './utils/console.js';
 
 async function main() {
     try {
-        const client = new AgentsClient(aiFoundryProjectEndpoint, new DefaultAzureCredential());
+        const client = new AIProjectClient(endpoint, new DefaultAzureCredential());
 
         let continueLoop = true;
 

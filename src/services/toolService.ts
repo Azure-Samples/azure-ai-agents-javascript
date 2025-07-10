@@ -1,19 +1,13 @@
 import fs from "fs";
 import { cpus } from "os";
-import {
-  AgentsClient,
-  connectionToolType,
-  FunctionToolDefinition,
-  RequiredFunctionToolCall,
-  ToolOutput,
-  ToolUtility,
-} from "@azure/ai-agents";
+import { AIProjectClient } from '@azure/ai-projects';
+import { connectionToolType, FunctionToolDefinition, RequiredFunctionToolCall, ToolOutput, ToolUtility } from "@azure/ai-agents";
 import { aiSearchConnectionId, bingGroundingConnectionId } from "../config/env.js";
 import { PromptConfig } from "../types.js";
 
 export async function createTools(
   selectedPromptConfig: PromptConfig,
-  client: AgentsClient
+  client: AIProjectClient
 ) {
   if (selectedPromptConfig.tool === "code-interpreter") {
     const { codeInterpreterTool, file } = await getCodeInterpreter(selectedPromptConfig, client);
@@ -25,7 +19,7 @@ export async function createTools(
   }
 
   if (selectedPromptConfig.tool === "ai-search") {
-    const azureAISearchTool = await createAISearchTool(client);
+    const azureAISearchTool = await createAISearchTool();
     selectedPromptConfig.tools = [azureAISearchTool.definition];
     selectedPromptConfig.toolResources = azureAISearchTool.resources;
   }
@@ -39,18 +33,15 @@ export async function createTools(
   }
 
   if (selectedPromptConfig.tool === "bing-grounding") {
-    const bingTool = await createBingGroundingTool(client);
+    const bingTool = await createBingGroundingTool();
     selectedPromptConfig.tools = [bingTool.definition];
   }
 }
 
-export async function getCodeInterpreter(
-  selectedPromptConfig: PromptConfig,
-  client: AgentsClient
-) {
+export async function getCodeInterpreter(selectedPromptConfig: PromptConfig, client: AIProjectClient) {
   if (selectedPromptConfig.filePath) {
     const fileStream = fs.createReadStream(selectedPromptConfig.filePath);
-    const file = await client.files.upload(fileStream, "assistants", {
+    const file = await client.agents.files.upload(fileStream, "assistants", {
       fileName: selectedPromptConfig.filePath,
     });
     console.log(
@@ -67,11 +58,11 @@ export async function getCodeInterpreter(
   };
 }
 
-export async function createAISearchTool(client: AgentsClient) {
+export async function createAISearchTool() {
   return ToolUtility.createAzureAISearchTool(aiSearchConnectionId, "AI Search Connection"); // Using a default name since we can't fetch it
 }
 
-async function createBingGroundingTool(client: AgentsClient) {
+async function createBingGroundingTool() {
   return ToolUtility.createConnectionTool(connectionToolType.BingGrounding, [
     bingGroundingConnectionId,
   ]);
