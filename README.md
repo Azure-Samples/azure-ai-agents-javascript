@@ -23,7 +23,7 @@ If you'd like to use the AI Search/RAG functionality in the demo, you'll find de
 
 - Add the health documents in `files` to an Azure Blob Storage container.
 - Import the health documents into an Azure AI Search index using the [Azure AI Search Importer](https://learn.microsoft.com/en-us/azure/search/search-get-started-portal-import-vectors).
-- Create a connection to the AI Search resource in your AI Foundry project. See [Azure AI Search Importer](https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-ai-search?tabs=azurecli%2Cjavascript&pivots=code-examples#import-documents-into-an-index).
+- Create a connection to the AI Search resource in your AI Foundry project. See [Use an existing AI Search index with the Azure AI Search tool](https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-ai-search?tabs=azurecli%2Cjavascript&pivots=code-examples#import-documents-into-an-index).
 
 ## Bing Grounding Tooling Setup
 
