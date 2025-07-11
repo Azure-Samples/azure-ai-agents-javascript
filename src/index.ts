@@ -1,16 +1,13 @@
 import { DefaultAzureCredential } from '@azure/identity';
-import { AIProjectsClient } from '@azure/ai-projects';
-import { aiFoundryConnectionString } from './config/env.js';
+import { AIProjectClient } from '@azure/ai-projects';
+import { endpoint } from './config/env.js';
 import { promptConfig } from './config/promptConfig.js';
 import { processSelectedPrompt } from './services/agentService.js';
 import { displayAvailablePrompts, getPromptSelection } from './utils/console.js';
 
 async function main() {
     try {
-        const client = AIProjectsClient.fromConnectionString(
-            aiFoundryConnectionString,
-            new DefaultAzureCredential()
-        );
+        const client = new AIProjectClient(endpoint, new DefaultAzureCredential());
 
         let continueLoop = true;
 
@@ -23,8 +20,7 @@ async function main() {
             // Check if user wants to exit
             if (selectedIndex === promptKeys.length) {
                 console.log('Exiting application.');
-                continueLoop = false;
-                continue;
+                process.exit(1);
             }
     
             if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= promptKeys.length) {

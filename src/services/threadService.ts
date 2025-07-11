@@ -1,48 +1,37 @@
-import type {
-  AgentOutput,
-  FunctionToolDefinitionOutput,
-  MessageDeltaChunk,
-  MessageDeltaTextContent,
-  MessageImageFileContentOutput,
-  MessageTextContentOutput,
-  OpenAIPageableListOfThreadMessageOutput,
-  SubmitToolOutputsActionOutput,
-  ThreadRunOutput,
-  ToolOutput,
-} from "@azure/ai-projects";
 import {
-  AIProjectsClient,
-  AgentThreadOutput,
   DoneEvent,
   ErrorEvent,
   MessageStreamEvent,
   RunStreamEvent,
-  isOutputOfType
-} from "@azure/ai-projects";
+  isOutputOfType,
+  ThreadMessage,
+  MessageTextContent,
+  MessageImageFileContent,
+  AgentThread,
+  Agent,
+  ThreadRun,
+  MessageDeltaChunk,
+  MessageDeltaTextContent,
+  SubmitToolOutputsAction,
+  ToolOutput,
+  RequiredFunctionToolCall
+} from "@azure/ai-agents";
+import { AIProjectClient } from '@azure/ai-projects';
 import fs from "fs";
 import { PromptConfig } from "../types.js";
 
-export async function addMessageToThread(
-  client: AIProjectsClient,
-  threadId: string,
-  message: string
-) {
-  await client.agents.createMessage(threadId, {
-    role: "user",
-    content: message,
-  });
-}
+export async function printThreadMessages(selectedPromptConfig: PromptConfig, client: AIProjectClient, threadId: string) {
+  const messagesIterator = await client.agents.messages.list(threadId);
+  const messagesArray: ThreadMessage[] = [];
 
-export async function printThreadMessages(
-  selectedPromptConfig: PromptConfig,
-  client: AIProjectsClient,
-  threadId: string
-) {
-  const messages = await client.agents.listMessages(threadId);
+  // Consider pagination for large datasets
+  for await (const m of messagesIterator) {
+      messagesArray.push(m);
+  }
+
   console.log("\nMessages:\n----------------------------------------------");
 
-  // Messages iterate from oldest to newest - messages[0] is the most recent
-  const messagesArray = messages.data;
+  // Messages iterate from oldest to newest - reverse to show newest first
   for (let i = messagesArray.length - 1; i >= 0; i--) {
     const m = messagesArray[i];
     const content = m.content[0];
@@ -53,44 +42,52 @@ export async function printThreadMessages(
     }
 
     console.log(`Type: ${m.content[0].type}`);
-    if (isOutputOfType<MessageTextContentOutput>(m.content[0], "text")) {
-      const textContent = m.content[0] as MessageTextContentOutput;
+    if (isOutputOfType<MessageTextContent>(m.content[0], "text")) {
+      const textContent = m.content[0] as MessageTextContent;
       const role = m.role === "user" ? "User" : "Agent";
       console.log(`${role}: ${textContent.text.value}`);
     }
   }
 
-  if (
-    selectedPromptConfig.tool === "code-interpreter" &&
-    selectedPromptConfig.filePath
-  ) {
-    await getImages(client, messages);
+  if (selectedPromptConfig.tool === "code-interpreter" && selectedPromptConfig.filePath) {
+    await getImages(client, messagesArray);
   }
 }
 
-export async function getImages(
-  client: AIProjectsClient,
-  messages: OpenAIPageableListOfThreadMessageOutput
-) {
-  console.log("Looking for image files...");
+export async function getImages(client: AIProjectClient, messages: ThreadMessage[]) {
+  console.log("\n🏞️ Looking for image files...");
   const fileIds: string[] = [];
-  for (const data of messages.data) {
+  for (const data of messages) {
     for (const content of data.content) {
-      const imageFile = (content as MessageImageFileContentOutput).imageFile;
+      const imageFile = (content as MessageImageFileContent).imageFile;
       if (imageFile) {
         fileIds.push(imageFile.fileId);
-        const imageFileName = (await client.agents.getFile(imageFile.fileId))
-          .filename;
+        console.log(`\n Found image file with ID: ${imageFile.fileId}`);
+        const imageFileName = (await client.agents.files.get(imageFile.fileId)).filename;
 
-        const fileContent = await (
-          await client.agents.getFileContent(imageFile.fileId).asNodeStream()
-        ).body;
-        if (fileContent) {
-          const chunks: Buffer[] = [];
-          for await (const chunk of fileContent) {
-            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        try {
+          // Get file content using the StreamableMethod with asNodeStream()
+          const fileContentStream = client.agents.files.getContent(imageFile.fileId);
+          const streamResponse = await fileContentStream.asNodeStream();
+          
+          if (!streamResponse.body) {
+            throw new Error("Stream response body is undefined");
           }
-          const buffer = Buffer.concat(chunks);
+          
+          // Read the stream to get the actual content
+          const chunks: Buffer[] = [];
+          
+          streamResponse.body.on('data', (chunk: Buffer) => {
+            chunks.push(chunk);
+          });
+          
+          const buffer = await new Promise<Buffer>((resolve, reject) => {
+            streamResponse.body!.on('end', () => {
+              resolve(Buffer.concat(chunks));
+            });
+            
+            streamResponse.body!.on('error', reject);
+          });
 
           // Ensure downloads directory exists
           if (!fs.existsSync("./downloads")) {
@@ -98,12 +95,10 @@ export async function getImages(
           }
 
           fs.writeFileSync(`./downloads/${imageFileName}`, buffer);
-        } else {
-          console.error(
-            "Failed to retrieve file content: fileContent is undefined"
-          );
+          console.log(`Saved image file to: ${imageFileName}`);
+        } catch (error) {
+          console.error(`Error processing file ${imageFile.fileId}:`, error);
         }
-        console.log(`Saved image file to: ${imageFileName}`);
       }
     }
   }
@@ -111,28 +106,19 @@ export async function getImages(
   //Delete remote files
   for (const fileId of fileIds) {
     console.log(`Deleting remote image file with ID: ${fileId}`);
-    await client.agents.deleteFile(fileId);
+    await client.agents.files.delete(fileId);
   }
 }
 
-export async function getRunStats(
-  runId: string,
-  client: AIProjectsClient,
-  thread: AgentThreadOutput
-) {
+export async function getRunStats(runId: string, client: AIProjectClient, thread: AgentThread) {
   if (runId) {
-    const completedRun = await client.agents.getRun(thread.id, runId);
+    const completedRun = await client.agents.runs.get(thread.id, runId);
     console.log("\nToken usage:", completedRun.usage);
   }
 }
 
-export async function runAgent(
-  client: AIProjectsClient,
-  thread: AgentThreadOutput,
-  agent: AgentOutput,
-  promptConfig: PromptConfig
-): Promise<string> {
-  const run = client.agents.createRun(thread.id, agent.id, {parallelToolCalls: false});
+export async function runAgent(client: AIProjectClient, thread: AgentThread, agent: Agent, promptConfig: PromptConfig): Promise<string> {
+  const run = client.agents.runs.create(thread.id, agent.id, {parallelToolCalls: false});
   let streamEventMessages = await run.stream();
   let runId = "";
 
@@ -140,7 +126,7 @@ export async function runAgent(
 
     switch (eventMessage.event) {
       case RunStreamEvent.ThreadRunCreated:
-        runId = (eventMessage.data as ThreadRunOutput).id;
+        runId = (eventMessage.data as ThreadRun).id;
         break;
 
       case MessageStreamEvent.ThreadMessageDelta:
@@ -160,7 +146,7 @@ export async function runAgent(
         break;
 
       case RunStreamEvent.ThreadRunRequiresAction:
-        let runOutput = eventMessage.data as ThreadRunOutput;
+        let runOutput = eventMessage.data as ThreadRun;
         if (runOutput.requiredAction) {
           const runStream = await processRequiredAction(
             client,
@@ -191,24 +177,16 @@ export async function runAgent(
   return runId;
 }
 
-async function processRequiredAction(
-  client: AIProjectsClient,
-  thread: AgentThreadOutput,
-  run: ThreadRunOutput,
-  promptConfig: PromptConfig
-) {
+async function processRequiredAction(client: AIProjectClient, thread: AgentThread, run: ThreadRun, promptConfig: PromptConfig) {
   if (
-    run.requiredAction &&
-    isOutputOfType<SubmitToolOutputsActionOutput>(
-      run.requiredAction,
-      "submit_tool_outputs"
-    )
+    run.requiredAction && 
+    isOutputOfType<SubmitToolOutputsAction>(run.requiredAction, "submit_tool_outputs")
   ) {
     const submitToolOutputsActionOutput = run.requiredAction;
     const toolCalls = submitToolOutputsActionOutput.submitToolOutputs.toolCalls;
     const toolResponses: ToolOutput[] = [];
     for (const toolCall of toolCalls) {
-      if (isOutputOfType<FunctionToolDefinitionOutput>(toolCall, "function")) {
+      if (isOutputOfType<RequiredFunctionToolCall>(toolCall, "function")) {
         const toolResponse = promptConfig.executor?.invokeTool(
           toolCall
         ) as ToolOutput;
@@ -220,9 +198,7 @@ async function processRequiredAction(
     }
     if (toolResponses.length > 0) {
       console.log(`Submitting tool outputs to run ID ${run.id}`);
-      return client.agents
-        .submitToolOutputsToRun(thread.id, run.id, toolResponses)
-        .stream();
+      return client.agents.runs.submitToolOutputs(thread.id, run.id, toolResponses).stream();
     }
   }
 }

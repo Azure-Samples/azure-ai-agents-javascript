@@ -13,7 +13,21 @@ This demo originally started out using the code from the [Azure AI Agent QuickSt
 
 ![Demo Prompts](./images/prompts.png)
 
-To use the demo you'll need to complete the steps in the [QuickStart](https://learn.microsoft.com/azure/ai-services/agents/quickstart?pivots=programming-language-javascript) to set up your Azure AI Foundry project. If you'd like to use the AI Search/RAG functionality in the demo, you'll find details about the setup in the [AI Search tooling](https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-ai-search?tabs=azurecli%2Cjavascript&pivots=code-examples) document.
+## AI Foundry Project Setup
+
+To use the demo you'll need to create an Azure AI Foundry project by following the [QuickStart](https://learn.microsoft.com/azure/ai-services/agents/quickstart?pivots=programming-language-javascript). 
+
+## AI Search Tooling Setup
+
+If you'd like to use the AI Search/RAG functionality in the demo, you'll find details about the setup in the [AI Search tooling](https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-ai-search?tabs=azurecli%2Cjavascript&pivots=code-examples) document. You'll need to:
+
+- Add the health documents in `files` to an Azure Blob Storage container.
+- Import the health documents into an Azure AI Search index using the [Azure AI Search Importer](https://learn.microsoft.com/en-us/azure/search/search-get-started-portal-import-vectors).
+- Create a connection to the AI Search resource in your AI Foundry project. See [Azure AI Search Importer](https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-ai-search?tabs=azurecli%2Cjavascript&pivots=code-examples#import-documents-into-an-index).
+
+## Bing Grounding Tooling Setup
+
+If you'd like to use the Bing Grounding functionality in the demo, you'll find details about the setup in the [Bing Grounding tooling](https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/bing-grounding?tabs=azurecli%2Cjavascript&pivots=code-examples) document.
 
 ## Running the Demo
 
@@ -21,7 +35,14 @@ After going through the QuickStart steps (and optionally the AI Search and Bing 
 
 1. Rename `.env.template` to `.env`.
 
-1. Assign your Azure AI Foundry connection string, your AI Search and Bing Grounding connection name from Azure AI Foundry, and (optionally) the model deployment name to the `.env` file keys.
+1. Assign your Azure AI Foundry endpoint, your AI Search connection ID, the AI Search index name, and the Bing Grounding connection ID from Azure AI Foundry to the appropriate env keys. You can optionally change the model deployment name.
+
+    ```bash
+    AI_FOUNDRY_PROJECT_ENDPOINT=https://<your-endpoint>.services.ai.azure.com/api/projects/<your-project>
+    AI_SEARCH_CONNECTION_ID=/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.CognitiveServices/accounts/<account-name>/projects/<project-name>/connections/<connection-name>
+    AI_SEARCH_INDEX_NAME=<your-index-name>
+    BING_GROUNDING_CONNECTION_ID=/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.CognitiveServices/accounts/<account-name>/projects/<project-name>/connections/<connection-name>
+    ```
 
 1. Install the project dependencies:
 
@@ -33,4 +54,6 @@ After going through the QuickStart steps (and optionally the AI Search and Bing 
     ```bash
     npm start
     ```
+
+1. Select an agent demo to run.
 
