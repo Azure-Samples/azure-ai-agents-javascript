@@ -1,68 +1,65 @@
-import fs from "fs";
-import { cpus } from "os";
+import fs from 'fs';
+import { cpus } from 'os';
 import { AIProjectClient } from '@azure/ai-projects';
-import { connectionToolType, FunctionToolDefinition, RequiredFunctionToolCall, ToolOutput, ToolUtility } from "@azure/ai-agents";
-import { aiSearchConnectionId, bingGroundingConnectionId } from "../config/env.js";
-import { PromptConfig } from "../types.js";
+import { connectionToolType, FunctionToolDefinition, RequiredFunctionToolCall, ToolOutput, ToolUtility } from '@azure/ai-agents';
+import { aiSearchConnectionId, aiSearchIndexName, bingGroundingConnectionId } from '../config/env.js';
+import { PromptConfig } from '../types.js';
 
 export async function createTools(selectedPromptConfig: PromptConfig, client: AIProjectClient) {
-  if (selectedPromptConfig.tool === "code-interpreter") {
-    const { codeInterpreterTool, file } = await getCodeInterpreter(selectedPromptConfig, client);
-    if (file) {
-      selectedPromptConfig.fileId = file?.id;
+  switch (selectedPromptConfig.tool) {
+    case 'code-interpreter': {
+      const { codeInterpreterTool, file } = await getCodeInterpreter(selectedPromptConfig, client);
+      if (file) {
+        selectedPromptConfig.fileId = file.id;
+      }
+      selectedPromptConfig.tools = [codeInterpreterTool.definition];
+      selectedPromptConfig.toolResources = codeInterpreterTool.resources;
+      break;
     }
-    selectedPromptConfig.tools = [codeInterpreterTool.definition];
-    selectedPromptConfig.toolResources = codeInterpreterTool.resources;
-  }
 
-  if (selectedPromptConfig.tool === "ai-search") {
-    const azureAISearchTool = await createAISearchTool();
-    selectedPromptConfig.tools = [azureAISearchTool.definition];
-    selectedPromptConfig.toolResources = azureAISearchTool.resources;
-  }
+    case 'ai-search': {
+      const azureAISearchTool = ToolUtility.createAzureAISearchTool(aiSearchConnectionId, aiSearchIndexName);
+      selectedPromptConfig.tools = [azureAISearchTool.definition];
+      selectedPromptConfig.toolResources = azureAISearchTool.resources;
+      break;
+    }
 
-  if (selectedPromptConfig.tool === "function-tool") {
-    selectedPromptConfig.executor = FunctionToolExecutor;
-    selectedPromptConfig.tools = [
-      ...FunctionToolExecutor.getFunctionDefinitions(),
-    ];
-    selectedPromptConfig.toolResources = {};
-  }
+    case 'function-tool': {
+      selectedPromptConfig.executor = FunctionToolExecutor;
+      selectedPromptConfig.tools = [...FunctionToolExecutor.getFunctionDefinitions()];
+      selectedPromptConfig.toolResources = {};
+      break;
+    }
 
-  if (selectedPromptConfig.tool === "bing-grounding") {
-    const bingTool = await createBingGroundingTool();
-    selectedPromptConfig.tools = [bingTool.definition];
+    case 'bing-grounding': {
+      // Create Bing grounding tool with proper search configuration
+      const bingTool = ToolUtility.createBingGroundingTool([{
+        connectionId: bingGroundingConnectionId
+      }]);
+      selectedPromptConfig.tools = [bingTool.definition];
+      break;
+    }
+
+    default:
+      // No tool configured or unknown tool type
+      break;
   }
 }
 
 export async function getCodeInterpreter(selectedPromptConfig: PromptConfig, client: AIProjectClient) {
   if (selectedPromptConfig.filePath) {
     const fileStream = fs.createReadStream(selectedPromptConfig.filePath);
-    const file = await client.agents.files.upload(fileStream, "assistants", {
+    const file = await client.agents.files.upload(fileStream, 'assistants', {
       fileName: selectedPromptConfig.filePath,
     });
-    console.log(
-      `Uploaded ${selectedPromptConfig.filePath}. File ID: ${file.id}`
-    );
-    const codeInterpreterTool = ToolUtility.createCodeInterpreterTool([
-      file.id,
-    ]);
+    console.log(`Uploaded ${selectedPromptConfig.filePath}. File ID: ${file.id}`);
+    const codeInterpreterTool = ToolUtility.createCodeInterpreterTool([file.id]);
     return { codeInterpreterTool, file };
   }
   return {
     codeInterpreterTool: ToolUtility.createCodeInterpreterTool([]),
     file: null,
   };
-}
-
-export async function createAISearchTool() {
-  return ToolUtility.createAzureAISearchTool(aiSearchConnectionId, "AI Search Connection"); // Using a default name since we can't fetch it
-}
-
-async function createBingGroundingTool() {
-  return ToolUtility.createConnectionTool(connectionToolType.BingGrounding, [
-    bingGroundingConnectionId,
-  ]);
 }
 
 class FunctionToolFactory {
@@ -79,8 +76,8 @@ export class FunctionToolExecutor {
     {
       func: FunctionToolFactory.getCpuUsage,
         ...ToolUtility.createFunctionTool({
-          name: "getCpuUsage",
-          description: "Gets the current CPU usage of the system.",
+          name: 'getCpuUsage',
+          description: 'Gets the current CPU usage of the system.',
           parameters: {},
       }),
     },

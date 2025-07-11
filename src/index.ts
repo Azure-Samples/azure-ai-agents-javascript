@@ -20,8 +20,7 @@ async function main() {
             // Check if user wants to exit
             if (selectedIndex === promptKeys.length) {
                 console.log('Exiting application.');
-                continueLoop = false;
-                continue;
+                process.exit(1);
             }
     
             if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= promptKeys.length) {

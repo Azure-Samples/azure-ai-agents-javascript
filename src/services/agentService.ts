@@ -4,7 +4,7 @@ import { model } from '../config/env.js';
 import { promptConfig } from '../config/promptConfig.js';
 import { PromptConfig } from '../types.js';
 import { createTools } from './toolService.js';
-import { addMessageToThread, getRunStats, printThreadMessages, runAgent } from './threadService.js';
+import { getRunStats, printThreadMessages, runAgent } from './threadService.js';
 import { formatKeyToTitleCase } from '../utils/formatting.js';
 
 export async function processSelectedPrompt(client: AIProjectClient, selectedKey: string) {
@@ -29,12 +29,12 @@ export async function processSelectedPrompt(client: AIProjectClient, selectedKey
         });
 
         const thread = await client.agents.threads.create();
-        await addMessageToThread(client, thread.id, selectedPromptConfig.prompt);
+        await client.agents.messages.create(thread.id, 'user', selectedPromptConfig.prompt);
 
         const runId = await runAgent(client, thread, agent, selectedPromptConfig);
         await printThreadMessages(selectedPromptConfig, client, thread.id);
+        
         await getRunStats(runId, client, thread);
-
         await dispose(selectedPromptConfig, client, agent);
     } catch (error) {
         console.error(`Error processing prompt "${selectedKey}":`, error);

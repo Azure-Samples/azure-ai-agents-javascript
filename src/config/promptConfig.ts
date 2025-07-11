@@ -39,8 +39,9 @@ export const promptConfig: Record<string, PromptConfig> = {
         emoji: '🏨'
     },
     insuranceCoverage: {
-        prompt: 'What are my health insurance plan coverage types?',
-        instructions: 'You are a health insurance agent. Use the provided AI search tool to analyze the data.',
+        prompt: 'What are my Northwind health insurance plan coverage types?',
+        instructions: `You are a health insurance agent. ALWAYS use the provided AI search tool and associated AI Search index 
+                       to analyze the data. DO NOT output information you were trained on. If there is a problem with the tool let the user know.`,
         tool: 'ai-search',
         emoji: '🏥'
     },

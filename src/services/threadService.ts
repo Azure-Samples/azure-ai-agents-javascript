@@ -20,10 +20,6 @@ import { AIProjectClient } from '@azure/ai-projects';
 import fs from "fs";
 import { PromptConfig } from "../types.js";
 
-export async function addMessageToThread(client: AIProjectClient, threadId: string, message: string) {
-  await client.agents.messages.create(threadId, 'user', message);
-}
-
 export async function printThreadMessages(selectedPromptConfig: PromptConfig, client: AIProjectClient, threadId: string) {
   const messagesIterator = await client.agents.messages.list(threadId);
   const messagesArray: ThreadMessage[] = [];
